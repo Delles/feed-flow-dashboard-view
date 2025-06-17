@@ -1,16 +1,16 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Article } from "@/types/rss";
-import { mockFeeds } from "@/lib/mockData";
+import { Article, RSSFeed } from "@/types/rss";
 import { Clock, ExternalLink, User } from "lucide-react";
 
 interface ArticleCardProps {
   article: Article;
+  feeds: RSSFeed[];
 }
 
-export function ArticleCard({ article }: ArticleCardProps) {
-  const feed = mockFeeds.find(f => f.id === article.feedId);
+export function ArticleCard({ article, feeds }: ArticleCardProps) {
+  const feed = feeds.find(f => f.id === article.feedId);
   const timeAgo = getTimeAgo(article.pubDate);
 
   return (
