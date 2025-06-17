@@ -8,10 +8,10 @@ export interface ParsedRSSFeed {
 
 // Multiple CORS proxy services as fallbacks
 const CORS_PROXIES = [
-  "https://api.allorigins.win/get?url=",
   "https://corsproxy.io/?",
-  "https://cors-anywhere.herokuapp.com/",
-  "https://api.codetabs.com/v1/proxy?quest="
+  "https://api.codetabs.com/v1/proxy?quest=",
+  "https://api.allorigins.win/get?url=",
+  "https://cors-anywhere.herokuapp.com/"
 ];
 
 function extractTextContent(element: Element | null): string {
@@ -45,14 +45,35 @@ async function fetchWithProxy(url: string): Promise<string> {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
-      const data = await response.json();
+      const contentType = response.headers.get('content-type') || '';
       
-      // Different proxy services return data in different formats
-      const xmlText = data.contents || data.body || data.data || data;
+      // Check if response is XML directly
+      if (contentType.includes('xml') || contentType.includes('text')) {
+        const xmlText = await response.text();
+        if (xmlText.includes('<rss') || xmlText.includes('<?xml')) {
+          console.log("Successfully fetched RSS data as XML with proxy:", proxy);
+          return xmlText;
+        }
+      }
       
-      if (typeof xmlText === 'string' && xmlText.includes('<rss')) {
-        console.log("Successfully fetched RSS data with proxy:", proxy);
-        return xmlText;
+      // Try parsing as JSON (for proxies that wrap the response)
+      try {
+        const data = await response.json();
+        
+        // Different proxy services return data in different formats
+        const xmlText = data.contents || data.body || data.data || data;
+        
+        if (typeof xmlText === 'string' && (xmlText.includes('<rss') || xmlText.includes('<?xml'))) {
+          console.log("Successfully fetched RSS data as JSON with proxy:", proxy);
+          return xmlText;
+        }
+      } catch (jsonError) {
+        // If JSON parsing fails, try as text
+        const textData = await response.text();
+        if (textData.includes('<rss') || textData.includes('<?xml')) {
+          console.log("Successfully fetched RSS data as text with proxy:", proxy);
+          return textData;
+        }
       }
       
       throw new Error("Invalid response format from proxy");
