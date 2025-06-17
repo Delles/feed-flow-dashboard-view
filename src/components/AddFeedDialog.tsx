@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { RSSFeed } from "@/types/rss";
-import { Rss, Plus } from "lucide-react";
+import { RSSFeed, Article } from "@/types/rss";
+import { Rss, Plus, Loader2 } from "lucide-react";
+import { parseRSSFeed } from "@/lib/rssParser";
 
 interface AddFeedDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddFeed: (feed: RSSFeed) => void;
+  onAddFeed: (feed: RSSFeed, articles: Article[]) => void;
 }
 
 export function AddFeedDialog({ open, onOpenChange, onAddFeed }: AddFeedDialogProps) {
@@ -22,31 +23,39 @@ export function AddFeedDialog({ open, onOpenChange, onAddFeed }: AddFeedDialogPr
     favicon: "📰"
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      console.log("Parsing RSS feed:", formData.url);
+      const { feed, articles } = await parseRSSFeed(formData.url);
+      
+      // Use parsed data if available, otherwise fall back to form data
+      const finalFeed: RSSFeed = {
+        ...feed,
+        title: formData.title || feed.title,
+        description: formData.description || feed.description,
+        favicon: formData.favicon || feed.favicon,
+      };
 
-    const newFeed: RSSFeed = {
-      id: Date.now().toString(),
-      title: formData.title,
-      url: formData.url,
-      description: formData.description,
-      favicon: formData.favicon,
-      lastUpdated: new Date()
-    };
-
-    onAddFeed(newFeed);
-    setFormData({ title: "", url: "", description: "", favicon: "📰" });
-    setIsLoading(false);
-    onOpenChange(false);
+      console.log("Successfully parsed feed:", finalFeed.title, "with", articles.length, "articles");
+      onAddFeed(finalFeed, articles);
+      setFormData({ title: "", url: "", description: "", favicon: "📰" });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to add RSS feed:", error);
+      setError(error instanceof Error ? error.message : "Failed to add RSS feed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const popularFeeds = [
-    { title: "TechCrunch", url: "https://techcrunch.com/feed/", favicon: "🚀" },
+    { title: "STIRIPESURSE.RO", url: "https://www.stiripesurse.ro/rss", favicon: "📰" },
     { title: "BBC News", url: "https://feeds.bbci.co.uk/news/rss.xml", favicon: "📺" },
     { title: "The Verge", url: "https://www.theverge.com/rss/index.xml", favicon: "📱" },
     { title: "Hacker News", url: "https://hnrss.org/frontpage", favicon: "💻" }
@@ -61,6 +70,11 @@ export function AddFeedDialog({ open, onOpenChange, onAddFeed }: AddFeedDialogPr
     });
   };
 
+  const handleUrlChange = (url: string) => {
+    setFormData(prev => ({ ...prev, url }));
+    setError(null);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -73,25 +87,27 @@ export function AddFeedDialog({ open, onOpenChange, onAddFeed }: AddFeedDialogPr
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Feed Title</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="e.g., TechCrunch"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="url">RSS URL</Label>
+            <Label htmlFor="url">RSS URL *</Label>
             <Input
               id="url"
               type="url"
               value={formData.url}
-              onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
+              onChange={(e) => handleUrlChange(e.target.value)}
               placeholder="https://example.com/rss.xml"
               required
+            />
+            {error && (
+              <p className="text-sm text-red-600">{error}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="title">Feed Title (Optional)</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="Will be auto-detected from RSS feed"
             />
           </div>
 
@@ -101,7 +117,7 @@ export function AddFeedDialog({ open, onOpenChange, onAddFeed }: AddFeedDialogPr
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Brief description of this feed..."
+              placeholder="Will be auto-detected from RSS feed"
               rows={2}
             />
           </div>
@@ -142,16 +158,20 @@ export function AddFeedDialog({ open, onOpenChange, onAddFeed }: AddFeedDialogPr
               variant="outline"
               onClick={() => onOpenChange(false)}
               className="flex-1"
+              disabled={isLoading}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !formData.url}
               className="flex-1 bg-blue-600 hover:bg-blue-700"
             >
               {isLoading ? (
-                "Adding..."
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Parsing...
+                </>
               ) : (
                 <>
                   <Plus className="h-4 w-4 mr-2" />

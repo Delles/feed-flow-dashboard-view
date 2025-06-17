@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { AddFeedDialog } from "@/components/AddFeedDialog";
-import { RSSFeed } from "@/types/rss";
+import { RSSFeed, Article } from "@/types/rss";
 
 interface AppSidebarProps {
   feeds: RSSFeed[];
-  onAddFeed: (feed: RSSFeed) => void;
+  onAddFeed: (feed: RSSFeed, articles: Article[]) => void;
   onRemoveFeed: (feedId: string) => void;
   selectedFeed: string | null;
   onSelectFeed: (feedId: string | null) => void;

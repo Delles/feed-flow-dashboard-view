@@ -15,8 +15,10 @@ const Index = () => {
     ? articles.filter(article => article.feedId === selectedFeed)
     : articles;
 
-  const addFeed = (feed: RSSFeed) => {
+  const addFeed = (feed: RSSFeed, newArticles: Article[]) => {
+    console.log("Adding feed:", feed.title, "with", newArticles.length, "articles");
     setFeeds(prev => [...prev, feed]);
+    setArticles(prev => [...prev, ...newArticles]);
   };
 
   const removeFeed = (feedId: string) => {
