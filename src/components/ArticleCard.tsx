@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Article, RSSFeed } from "@/types/rss";
@@ -14,7 +13,7 @@ export function ArticleCard({ article, feeds }: ArticleCardProps) {
   const timeAgo = getTimeAgo(article.pubDate);
 
   return (
-    <Card className="group h-full hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer border-slate-200 bg-white">
+    <Card className="group h-full hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer border-border bg-card">
       <a href={article.url} target="_blank" rel="noopener noreferrer" className="block h-full">
         {article.image && (
           <div className="aspect-video overflow-hidden rounded-t-lg">
@@ -28,27 +27,27 @@ export function ArticleCard({ article, feeds }: ArticleCardProps) {
         
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2 mb-2">
-            <Badge variant="secondary" className="text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200">
+            <Badge variant="secondary" className="text-xs font-medium">
               {feed?.favicon} {feed?.title}
             </Badge>
-            <div className="flex items-center gap-1 text-xs text-gray-500">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
               {timeAgo}
             </div>
           </div>
           
-          <h3 className="font-semibold text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-700 transition-colors">
+          <h3 className="font-semibold text-card-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
             {article.title}
           </h3>
         </CardHeader>
 
         <CardContent className="pt-0">
-          <p className="text-sm text-gray-600 line-clamp-3 mb-3 leading-relaxed">
+          <p className="text-sm text-muted-foreground line-clamp-3 mb-3 leading-relaxed">
             {article.description}
           </p>
           
           <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1 text-gray-500">
+            <div className="flex items-center gap-1 text-muted-foreground">
               {article.author && (
                 <>
                   <User className="h-3 w-3" />
@@ -56,7 +55,7 @@ export function ArticleCard({ article, feeds }: ArticleCardProps) {
                 </>
               )}
             </div>
-            <div className="flex items-center gap-1 text-blue-600 group-hover:text-blue-700">
+            <div className="flex items-center gap-1 text-primary group-hover:text-primary/80">
               <ExternalLink className="h-3 w-3" />
               <span>Read more</span>
             </div>
