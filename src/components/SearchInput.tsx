@@ -1,48 +1,79 @@
-
-import { useState } from "react";
-import { Search, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface SearchInputProps {
-  onSearch: (query: string) => void;
-  placeholder?: string;
+    onSearch: (query: string) => void;
+    placeholder?: string;
+    debounceDelay?: number;
+    isLoading?: boolean;
 }
 
-export function SearchInput({ onSearch, placeholder = "Search articles..." }: SearchInputProps) {
-  const [query, setQuery] = useState("");
+export function SearchInput({
+    onSearch,
+    placeholder = "Caută articole…",
+    debounceDelay = 300,
+    isLoading = false,
+}: SearchInputProps) {
+    const [query, setQuery] = useState("");
+    const debouncedQuery = useDebounce(query, debounceDelay);
+    const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setQuery(value);
-    onSearch(value);
-  };
+    useEffect(() => {
+        onSearch(debouncedQuery);
+    }, [debouncedQuery, onSearch]);
 
-  const clearSearch = () => {
-    setQuery("");
-    onSearch("");
-  };
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                inputRef.current?.focus();
+            }
+        };
 
-  return (
-    <div className="relative flex-1 max-w-lg">
-      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-      <Input
-        type="text"
-        placeholder={placeholder}
-        value={query}
-        onChange={handleInputChange}
-        className="pl-10 pr-10 bg-white border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-      />
-      {query && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={clearSearch}
-          className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
-        >
-          <X className="h-3 w-3" />
-        </Button>
-      )}
-    </div>
-  );
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setQuery(e.target.value);
+    };
+
+    const clearSearch = () => {
+        setQuery("");
+    };
+
+    return (
+        <div className="relative w-full max-w-xl mx-auto">
+            {isLoading ? (
+                <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground animate-spin" />
+            ) : (
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            )}
+            <Input
+                ref={inputRef}
+                type="text"
+                placeholder={placeholder}
+                value={query}
+                onChange={handleInputChange}
+                className="pl-10 pr-14 sm:pr-20"
+            />
+            {query ? (
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearSearch}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 size-6 p-0"
+                >
+                    <X className="h-3 w-3" />
+                </Button>
+            ) : (
+                <kbd className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground sm:flex">
+                    <span className="text-xs">⌘</span>K
+                </kbd>
+            )}
+        </div>
+    );
 }

@@ -1,86 +1,116 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+} from "@/components/ui/card";
 import { Article, RSSFeed } from "@/types/rss";
-import { Clock, ExternalLink, User } from "lucide-react";
+import { Rss, Clock } from "lucide-react";
 
 interface ArticleCardProps {
-  article: Article;
-  feeds: RSSFeed[];
+    article: Article;
+    feeds: RSSFeed[];
+}
+
+function timeSince(date: Date): string {
+    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+    let interval = seconds / 31536000;
+    if (interval >= 1) {
+        return `acum ${Math.floor(interval)} ${
+            Math.floor(interval) === 1 ? "an" : "ani"
+        }`;
+    }
+    interval = seconds / 2592000;
+    if (interval >= 1) {
+        return `acum ${Math.floor(interval)} luni`;
+    }
+    interval = seconds / 86400;
+    if (interval >= 1) {
+        return `acum ${Math.floor(interval)} ${
+            Math.floor(interval) === 1 ? "zi" : "zile"
+        }`;
+    }
+    interval = seconds / 3600;
+    if (interval >= 1) {
+        return `acum ${Math.floor(interval)} ${
+            Math.floor(interval) === 1 ? "oră" : "ore"
+        }`;
+    }
+    interval = seconds / 60;
+    if (interval >= 1) {
+        return `acum ${Math.floor(interval)} ${
+            Math.floor(interval) === 1 ? "minut" : "minute"
+        }`;
+    }
+    return "chiar acum";
 }
 
 export function ArticleCard({ article, feeds }: ArticleCardProps) {
-  const feed = feeds.find(f => f.id === article.feedId);
-  const timeAgo = getTimeAgo(article.pubDate);
+    const feed = feeds.find((f) => f.id === article.feedId);
 
-  return (
-    <Card className="group h-full hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer border-border bg-card">
-      <a href={article.url} target="_blank" rel="noopener noreferrer" className="block h-full">
-        {article.image && (
-          <div className="aspect-video overflow-hidden rounded-t-lg">
-            <img
-              src={article.image}
-              alt={article.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-        )}
-        
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Badge variant="secondary" className="text-xs font-medium">
-              {feed?.favicon} {feed?.title}
-            </Badge>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              {timeAgo}
-            </div>
-          </div>
-          
-          <h3 className="font-semibold text-card-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
-            {article.title}
-          </h3>
-        </CardHeader>
-
-        <CardContent className="pt-0">
-          <p className="text-sm text-muted-foreground line-clamp-3 mb-3 leading-relaxed">
-            {article.description}
-          </p>
-          
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              {article.author && (
-                <>
-                  <User className="h-3 w-3" />
-                  <span>{article.author}</span>
-                </>
-              )}
-            </div>
-            <div className="flex items-center gap-1 text-primary group-hover:text-primary/80">
-              <ExternalLink className="h-3 w-3" />
-              <span>Read more</span>
-            </div>
-          </div>
-        </CardContent>
-      </a>
-    </Card>
-  );
-}
-
-function getTimeAgo(date: Date): string {
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  
-  const minutes = Math.floor(diff / (1000 * 60));
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  
-  if (days > 0) {
-    return `${days}d ago`;
-  } else if (hours > 0) {
-    return `${hours}h ago`;
-  } else if (minutes > 0) {
-    return `${minutes}m ago`;
-  } else {
-    return 'Just now';
-  }
+    return (
+        <Card className="flex flex-col h-full overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out">
+            {article.image ? (
+                <div className="aspect-video overflow-hidden">
+                    <img
+                        src={article.image}
+                        alt={article.title}
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+            ) : (
+                <div className="aspect-video bg-muted/50 flex items-center justify-center">
+                    <Rss className="w-12 h-12 text-muted-foreground" />
+                </div>
+            )}
+            <CardHeader className="p-4">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                        {feed?.favicon &&
+                            (feed.favicon.startsWith("http") ? (
+                                <img
+                                    src={feed.favicon}
+                                    alt={`${feed.title} favicon`}
+                                    className="w-4 h-4"
+                                />
+                            ) : (
+                                <span className="text-base leading-none">
+                                    {feed.favicon}
+                                </span>
+                            ))}
+                        <span className="font-medium text-foreground/90">
+                            {feed?.title ?? "Sursă necunoscută"}
+                        </span>
+                    </div>
+                    <span className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" />
+                        {timeSince(new Date(article.pubDate))}
+                    </span>
+                </div>
+                <h3 className="font-bold text-lg leading-tight mt-2 text-card-foreground">
+                    <a
+                        href={article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-primary transition-colors"
+                    >
+                        {article.title}
+                    </a>
+                </h3>
+            </CardHeader>
+            <CardContent className="p-4 pt-0 text-sm text-muted-foreground flex-grow">
+                <p>{article.description}</p>
+            </CardContent>
+            <CardFooter className="p-4 pt-0 mt-auto">
+                <a
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary font-semibold text-sm hover:underline"
+                >
+                    Citește mai mult
+                </a>
+            </CardFooter>
+        </Card>
+    );
 }
