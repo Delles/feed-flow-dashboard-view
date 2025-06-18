@@ -94,9 +94,18 @@ export const mockFeeds: RSSFeed[] = [
         category: "Ziare",
         lastUpdated: new Date(),
     },
-    // Investigatii
     {
         id: "11",
+        title: "G4Media",
+        url: "https://www.g4media.ro/feed",
+        description: "General news",
+        favicon: "📰",
+        category: "Ziare",
+        lastUpdated: new Date(),
+    },
+    // Investigatii
+    {
+        id: "12",
         title: "Recorder",
         url: "https://recorder.ro/feed/",
         description: "Investigative journalism",
@@ -105,7 +114,7 @@ export const mockFeeds: RSSFeed[] = [
         lastUpdated: new Date(),
     },
     {
-        id: "12",
+        id: "13",
         title: "Snoop",
         url: "https://snoop.ro/feed/",
         description: "Investigative journalism",
