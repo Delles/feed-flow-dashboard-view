@@ -4,6 +4,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ArticleCard } from "@/components/ArticleCard";
 import { SearchInput } from "@/components/SearchInput";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { mockArticles, mockFeeds } from "@/lib/mockData";
 import { Article, RSSFeed } from "@/types/rss";
 
@@ -46,7 +47,7 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-slate-50">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar 
           feeds={feeds}
           onAddFeed={addFeed}
@@ -58,12 +59,15 @@ const Index = () => {
           <div className="flex items-center gap-4 mb-8">
             <SidebarTrigger className="lg:hidden" />
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">RSS Dashboard</h1>
+              <div className="flex items-center justify-between mb-2">
+                <h1 className="text-3xl font-bold text-foreground">RSS Dashboard</h1>
+                <ThemeToggle />
+              </div>
               <div className="flex items-center gap-4 mb-4">
                 <SearchInput onSearch={handleSearch} />
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
                   {searchQuery && (
-                    <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-md mr-2">
+                    <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md mr-2">
                       "{searchQuery}"
                     </span>
                   )}
@@ -82,13 +86,13 @@ const Index = () => {
 
           {filteredArticles.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">
+              <div className="text-muted-foreground text-6xl mb-4">
                 {searchQuery ? "🔍" : "📰"}
               </div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              <h3 className="text-xl font-semibold text-foreground mb-2">
                 {searchQuery ? "No articles found" : "No articles found"}
               </h3>
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 {searchQuery 
                   ? `Try searching for different keywords or clear your search.`
                   : "Add some RSS feeds to get started!"
