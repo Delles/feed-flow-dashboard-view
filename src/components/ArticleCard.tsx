@@ -48,8 +48,18 @@ function timeSince(date: Date): string {
 export function ArticleCard({ article, feeds }: ArticleCardProps) {
     const feed = feeds.find((f) => f.id === article.feedId);
 
+    const openArticle = () => window.open(article.url, "_blank");
+
     return (
-        <Card className="flex flex-col h-full overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out">
+        <Card
+            role="link"
+            tabIndex={0}
+            onClick={openArticle}
+            onKeyDown={(e) => {
+                if (e.key === "Enter") openArticle();
+            }}
+            className="flex flex-col h-full overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
             {article.image ? (
                 <div className="aspect-video overflow-hidden">
                     <img
@@ -88,28 +98,14 @@ export function ArticleCard({ article, feeds }: ArticleCardProps) {
                     </span>
                 </div>
                 <h3 className="font-bold text-lg leading-tight mt-2 text-card-foreground">
-                    <a
-                        href={article.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-primary transition-colors"
-                    >
-                        {article.title}
-                    </a>
+                    {article.title}
                 </h3>
             </CardHeader>
             <CardContent className="p-4 pt-0 text-sm text-muted-foreground flex-grow">
                 <p>{article.description}</p>
             </CardContent>
-            <CardFooter className="p-4 pt-0 mt-auto">
-                <a
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary font-semibold text-sm hover:underline"
-                >
-                    Citește mai mult
-                </a>
+            <CardFooter className="p-4 pt-0 mt-auto text-primary font-semibold text-sm">
+                Citește mai mult
             </CardFooter>
         </Card>
     );

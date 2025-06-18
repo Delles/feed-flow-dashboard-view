@@ -176,12 +176,14 @@ export function AppSidebar({
                                             onSelectCategory(category);
                                         }
                                     }}
-                                    className={`text-sm font-bold text-foreground uppercase tracking-wider flex-1 transition-all duration-200 ${
+                                    className={`text-sm font-semibold text-foreground uppercase tracking-wider flex-1 transition-all duration-200 px-3 py-2 rounded-lg bg-card border border-border shadow-sm hover:shadow-md hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                                         !isCategoryEnabled
-                                            ? "cursor-not-allowed"
-                                            : "cursor-pointer hover:text-primary"
+                                            ? "cursor-not-allowed opacity-40"
+                                            : "cursor-pointer"
                                     } ${
-                                        isCategorySelected ? "text-primary" : ""
+                                        isCategorySelected
+                                            ? "bg-accent text-accent-foreground shadow-md"
+                                            : ""
                                     } ${
                                         hasActiveFilter && !isGroupActive
                                             ? "opacity-60"
