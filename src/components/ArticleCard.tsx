@@ -6,10 +6,16 @@ import {
 } from "@/components/ui/card";
 import { Article, RSSFeed } from "@/types/rss";
 import { Rss, Clock } from "lucide-react";
+import { getOptimisedImage } from "@/lib/utils";
+import { useState } from "react";
 
 interface ArticleCardProps {
     article: Article;
     feeds: RSSFeed[];
+    /**
+     * When the card is the very first visible item on the page we mark its image
+     * as high-priority so that the browser schedules the request earlier. */
+    isFirst?: boolean;
 }
 
 function timeSince(date: Date): string {
@@ -45,8 +51,31 @@ function timeSince(date: Date): string {
     return "chiar acum";
 }
 
-export function ArticleCard({ article, feeds }: ArticleCardProps) {
+export function ArticleCard({
+    article,
+    feeds,
+    isFirst = false,
+}: ArticleCardProps) {
     const feed = feeds.find((f) => f.id === article.feedId);
+
+    const [useOriginal, setUseOriginal] = useState(false);
+
+    const src =
+        useOriginal && article.image
+            ? article.image
+            : article.image
+            ? getOptimisedImage(article.image, 640)
+            : "";
+    const srcSet =
+        !useOriginal && article.image
+            ? `${getOptimisedImage(
+                  article.image,
+                  320
+              )} 320w, ${getOptimisedImage(
+                  article.image,
+                  640
+              )} 640w, ${getOptimisedImage(article.image, 960)} 960w`
+            : undefined;
 
     const openArticle = () => window.open(article.url, "_blank");
 
@@ -63,11 +92,21 @@ export function ArticleCard({ article, feeds }: ArticleCardProps) {
             {article.image ? (
                 <div className="aspect-video overflow-hidden">
                     <img
-                        src={article.image}
+                        src={src}
+                        srcSet={srcSet}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         alt={article.title}
                         className="w-full h-full object-cover"
-                        loading="lazy"
+                        loading={isFirst ? "eager" : "lazy"}
                         decoding="async"
+                        fetchPriority={isFirst ? "high" : undefined}
+                        width={640}
+                        height={360}
+                        onError={() => {
+                            if (!useOriginal) {
+                                setUseOriginal(true);
+                            }
+                        }}
                     />
                 </div>
             ) : (

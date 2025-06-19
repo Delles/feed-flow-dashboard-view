@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { ArticleCard } from "@/components/ArticleCard";
+import { ArticleGridVirtual } from "@/components/ArticleGridVirtual";
 import { SearchInput } from "@/components/SearchInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -348,15 +348,10 @@ const Index = () => {
                         </div>
                     </header>
                     <main className="flex-1 p-6 pt-4 md:pt-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredArticles.map((article) => (
-                                <ArticleCard
-                                    key={article.id}
-                                    article={article}
-                                    feeds={feeds}
-                                />
-                            ))}
-                        </div>
+                        <ArticleGridVirtual
+                            articles={filteredArticles}
+                            feeds={feeds}
+                        />
 
                         {filteredArticles.length === 0 && (
                             <div className="text-center py-12">
