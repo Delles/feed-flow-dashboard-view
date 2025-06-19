@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,7 @@ const App = () => (
                 <Toaster />
                 <Sonner />
                 <Analytics />
+                <SpeedInsights />
                 <BrowserRouter>
                     <Routes>
                         <Route path="/" element={<Index />} />
