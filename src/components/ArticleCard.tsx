@@ -81,6 +81,7 @@ export function ArticleCard({
 
     return (
         <Card
+            aria-label={`${feed?.title ?? "Articol"}: ${article.title}`}
             role="link"
             tabIndex={0}
             onClick={openArticle}

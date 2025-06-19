@@ -1,15 +1,17 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Analytics } from "@vercel/analytics/react";
+import { Suspense, lazy } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const queryClient = new QueryClient();
+
+// Lazily loaded pages & third-party scripts to keep initial bundle small
+const Index = lazy(() => import("./pages/Index"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const LazyAnalytics = lazy(() => import("@/components/LazyAnalytics"));
 
 const App = () => (
     <QueryClientProvider client={queryClient}>
@@ -17,14 +19,22 @@ const App = () => (
             <TooltipProvider>
                 <Toaster />
                 <Sonner />
-                <Analytics />
-                <SpeedInsights />
+
+                {/* Defer heavy analytics bundles */}
+                <Suspense fallback={null}>
+                    <LazyAnalytics />
+                </Suspense>
+
                 <BrowserRouter>
-                    <Routes>
-                        <Route path="/" element={<Index />} />
-                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                        <Route path="*" element={<NotFound />} />
-                    </Routes>
+                    <Suspense
+                        fallback={<div className="p-4">Se încarcă...</div>}
+                    >
+                        <Routes>
+                            <Route path="/" element={<Index />} />
+                            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                            <Route path="*" element={<NotFound />} />
+                        </Routes>
+                    </Suspense>
                 </BrowserRouter>
             </TooltipProvider>
         </ThemeProvider>
