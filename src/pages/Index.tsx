@@ -6,13 +6,17 @@ import { SearchInput } from "@/components/SearchInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronUp } from "lucide-react";
-import { useInitialFeedData } from "@/hooks/useInitialFeedData";
+import { useIncrementalFeeds } from "@/hooks/useIncrementalFeeds";
 import { Article, RSSFeed } from "@/types/rss";
 import { normalizeText } from "@/lib/normalizeText";
 import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
-    const { data, isLoading, error } = useInitialFeedData();
+    const {
+        feeds: loadedFeeds,
+        articles: loadedArticles,
+        isInitialLoading,
+    } = useIncrementalFeeds();
     const [feeds, setFeeds] = useState<RSSFeed[]>([]);
     const [articles, setArticles] = useState<Article[]>([]);
     const [selectedFeed, setSelectedFeed] = useState<string | null>(null);
@@ -29,45 +33,51 @@ const Index = () => {
         Record<string, boolean>
     >({});
 
-    // Set initial data when it loads
+    // Whenever new feeds/articles are loaded, merge them into state
     useEffect(() => {
-        if (data) {
-            console.log("📊 Setting initial data:", {
-                feedCount: data.feeds.length,
-                articleCount: data.articles.length,
-                feeds: data.feeds.map((f) => ({ id: f.id, title: f.title })),
-                sampleArticles: data.articles.slice(0, 3).map((a) => ({
-                    id: a.id,
-                    feedId: a.feedId,
-                    title: a.title,
-                })),
+        if (loadedFeeds.length > 0) {
+            setFeeds((prev) => {
+                const ids = new Set(prev.map((f) => f.id));
+                const merged = [...prev];
+                loadedFeeds.forEach((f) => {
+                    if (!ids.has(f.id)) merged.push(f);
+                });
+                return merged;
             });
-            setFeeds(data.feeds);
-            // Sort articles by date when setting initial data
-            const sortedArticles = [...data.articles].sort((a, b) => {
-                return (
-                    new Date(b.pubDate).getTime() -
-                    new Date(a.pubDate).getTime()
+
+            setArticles((prev) => {
+                const idSet = new Set(prev.map((a) => a.id));
+                const combined = [...prev];
+                loadedArticles.forEach((a) => {
+                    if (!idSet.has(a.id)) combined.push(a);
+                });
+                // sort newest first
+                combined.sort(
+                    (a, b) =>
+                        new Date(b.pubDate).getTime() -
+                        new Date(a.pubDate).getTime()
                 );
-            });
-            setArticles(sortedArticles);
-
-            // Initialize enabled states for feeds and categories
-            const initialEnabledFeeds: Record<string, boolean> = {};
-            const initialEnabledCategories: Record<string, boolean> = {};
-
-            data.feeds.forEach((feed) => {
-                initialEnabledFeeds[feed.id] = true;
-                const category = feed.category ?? "Altele";
-                if (!(category in initialEnabledCategories)) {
-                    initialEnabledCategories[category] = true;
-                }
+                return combined;
             });
 
-            setEnabledFeeds(initialEnabledFeeds);
-            setEnabledCategories(initialEnabledCategories);
+            // enable feeds & categories
+            setEnabledFeeds((prev) => {
+                const updated = { ...prev };
+                loadedFeeds.forEach((f) => {
+                    if (!(f.id in updated)) updated[f.id] = true;
+                });
+                return updated;
+            });
+            setEnabledCategories((prev) => {
+                const updated = { ...prev };
+                loadedFeeds.forEach((f) => {
+                    const cat = f.category ?? "Altele";
+                    if (!(cat in updated)) updated[cat] = true;
+                });
+                return updated;
+            });
         }
-    }, [data]);
+    }, [loadedFeeds, loadedArticles]);
 
     const filteredArticles = useMemo(() => {
         return articles
@@ -230,7 +240,7 @@ const Index = () => {
     };
 
     // Show loading state
-    if (isLoading) {
+    if (isInitialLoading) {
         return (
             <SidebarProvider>
                 <div className="min-h-screen flex w-full bg-background justify-center">
@@ -265,27 +275,7 @@ const Index = () => {
         );
     }
 
-    // Show error state
-    if (error) {
-        return (
-            <SidebarProvider>
-                <div className="min-h-screen flex w-full bg-background justify-center">
-                    <main className="flex-1 p-6">
-                        <div className="text-center py-12">
-                            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                            <h3 className="text-xl font-semibold text-foreground mb-2">
-                                Nu s-au putut încărca fluxurile
-                            </h3>
-                            <p className="text-muted-foreground">
-                                A apărut o eroare la încărcarea datelor
-                                inițiale. Reîncarcă pagina și încearcă din nou.
-                            </p>
-                        </div>
-                    </main>
-                </div>
-            </SidebarProvider>
-        );
-    }
+    // We no longer show a global error state because feeds load incrementally.
 
     return (
         <SidebarProvider>

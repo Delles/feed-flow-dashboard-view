@@ -23,8 +23,11 @@ export function ArticleGridVirtual({
 }: ArticleGridVirtualProps) {
     const parentRef = useRef<HTMLDivElement | null>(null);
 
-    // Approximate card height (image 16:9 + padding + text) – fine-tuned via testing
-    const EST_ROW_HEIGHT = 340;
+    // Approximate card height (image 16:9 + padding + text).
+    // Add extra gap to match Tailwind's gap-6 (1.5rem = 24px) between rows.
+    const CARD_ESTIMATE = 484; // card height 460 + gap
+    const ROW_GAP = 24; // gap-6 (1.5rem)
+    const EST_ROW_HEIGHT = CARD_ESTIMATE + ROW_GAP;
 
     const columnCount = useColumnCount();
 
@@ -65,7 +68,7 @@ export function ArticleGridVirtual({
                                 width: "100%",
                                 transform: `translateY(${virtualRow.start}px)`,
                             }}
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-0"
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6"
                         >
                             {rowArticles.map((article, idx) => (
                                 <ArticleCard

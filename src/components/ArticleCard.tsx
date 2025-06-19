@@ -87,7 +87,7 @@ export function ArticleCard({
             onKeyDown={(e) => {
                 if (e.key === "Enter") openArticle();
             }}
-            className="flex flex-col h-full overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="flex flex-col h-[460px] overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
             {article.image ? (
                 <div className="aspect-video overflow-hidden">
@@ -138,12 +138,14 @@ export function ArticleCard({
                         {timeSince(new Date(article.pubDate))}
                     </span>
                 </div>
-                <h3 className="font-bold text-lg leading-tight mt-2 text-card-foreground">
+                <h3 className="font-bold text-lg leading-tight mt-2 text-card-foreground line-clamp-2">
                     {article.title}
                 </h3>
             </CardHeader>
             <CardContent className="p-4 pt-0 text-sm text-muted-foreground flex-grow">
-                <p>{article.description}</p>
+                <p className="line-clamp-3 leading-relaxed">
+                    {article.description}
+                </p>
             </CardContent>
             <CardFooter className="p-4 pt-0 mt-auto text-primary font-semibold text-sm">
                 Citește mai mult
