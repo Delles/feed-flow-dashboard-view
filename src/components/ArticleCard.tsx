@@ -66,6 +66,8 @@ export function ArticleCard({ article, feeds }: ArticleCardProps) {
                         src={article.image}
                         alt={article.title}
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                     />
                 </div>
             ) : (
