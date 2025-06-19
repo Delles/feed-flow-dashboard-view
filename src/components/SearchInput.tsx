@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, startTransition } from "react";
 import { Search, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,10 @@ export function SearchInput({
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        onSearch(debouncedQuery);
+        // Defer the potentially heavy search to a transition to avoid blocking input responsiveness
+        startTransition(() => {
+            onSearch(debouncedQuery);
+        });
     }, [debouncedQuery, onSearch]);
 
     useEffect(() => {
