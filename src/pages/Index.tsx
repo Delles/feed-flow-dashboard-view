@@ -1,14 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { ArticleGridVirtual } from "@/components/ArticleGridVirtual";
+import { ArticleGridInfinite } from "@/components/ArticleGridInfinite";
 import { SearchInput } from "@/components/SearchInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronUp } from "lucide-react";
 import { useIncrementalFeeds } from "@/hooks/useIncrementalFeeds";
+import { useInfiniteArticles } from "@/hooks/useInfiniteArticles";
 import { Article, RSSFeed } from "@/types/rss";
-import { normalizeText } from "@/lib/normalizeText";
 import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
@@ -24,7 +24,6 @@ const Index = () => {
         null
     );
     const [searchQuery, setSearchQuery] = useState("");
-    const [isSearching, setIsSearching] = useState(false);
     const [showScrollTop, setShowScrollTop] = useState(false);
     const [enabledFeeds, setEnabledFeeds] = useState<Record<string, boolean>>(
         {}
@@ -33,110 +32,121 @@ const Index = () => {
         Record<string, boolean>
     >({});
 
-    // Whenever new feeds/articles are loaded, merge them into state
+    // Memoize feed IDs to detect new feeds and prevent infinite loops
+    const currentFeedIds = useMemo(
+        () => new Set(loadedFeeds.map((f) => f.id)),
+        [loadedFeeds]
+    );
+
+    const currentArticleIds = useMemo(
+        () => new Set(loadedArticles.map((a) => a.id)),
+        [loadedArticles]
+    );
+
+    // Track processed IDs to prevent re-processing
+    const processedFeedIds = useRef(new Set<string>());
+    const processedArticleIds = useRef(new Set<string>());
+
     useEffect(() => {
-        if (loadedFeeds.length > 0) {
-            setFeeds((prev) => {
-                const ids = new Set(prev.map((f) => f.id));
-                const merged = [...prev];
-                loadedFeeds.forEach((f) => {
-                    if (!ids.has(f.id)) merged.push(f);
-                });
-                return merged;
-            });
+        // Find truly new feeds that haven't been processed
+        const newFeedIds = Array.from(currentFeedIds).filter(
+            (id) => !processedFeedIds.current.has(id)
+        );
+        const newArticleIds = Array.from(currentArticleIds).filter(
+            (id) => !processedArticleIds.current.has(id)
+        );
 
-            setArticles((prev) => {
-                const idSet = new Set(prev.map((a) => a.id));
-                const combined = [...prev];
-                loadedArticles.forEach((a) => {
-                    if (!idSet.has(a.id)) combined.push(a);
-                });
-                // sort newest first
-                combined.sort(
-                    (a, b) =>
-                        new Date(b.pubDate).getTime() -
-                        new Date(a.pubDate).getTime()
+        if (newFeedIds.length > 0 || newArticleIds.length > 0) {
+            // Mark new items as processed
+            newFeedIds.forEach((id) => processedFeedIds.current.add(id));
+            newArticleIds.forEach((id) => processedArticleIds.current.add(id));
+
+            // Only update if we have new feeds
+            if (newFeedIds.length > 0) {
+                const newFeeds = loadedFeeds.filter((f) =>
+                    newFeedIds.includes(f.id)
                 );
-                return combined;
-            });
 
-            // enable feeds & categories
-            setEnabledFeeds((prev) => {
-                const updated = { ...prev };
-                loadedFeeds.forEach((f) => {
-                    if (!(f.id in updated)) updated[f.id] = true;
+                setFeeds((prev) => {
+                    const existingIds = new Set(prev.map((f) => f.id));
+                    const merged = [...prev];
+                    newFeeds.forEach((f) => {
+                        if (!existingIds.has(f.id)) merged.push(f);
+                    });
+                    return merged;
                 });
-                return updated;
-            });
-            setEnabledCategories((prev) => {
-                const updated = { ...prev };
-                loadedFeeds.forEach((f) => {
-                    const cat = f.category ?? "Altele";
-                    if (!(cat in updated)) updated[cat] = true;
+
+                // Enable new feeds & categories
+                setEnabledFeeds((prev) => {
+                    const updated = { ...prev };
+                    newFeeds.forEach((f) => {
+                        if (!(f.id in updated)) updated[f.id] = true;
+                    });
+                    return updated;
                 });
-                return updated;
-            });
+
+                setEnabledCategories((prev) => {
+                    const updated = { ...prev };
+                    newFeeds.forEach((f) => {
+                        const cat = f.category ?? "Altele";
+                        if (!(cat in updated)) updated[cat] = true;
+                    });
+                    return updated;
+                });
+            }
+
+            // Only update articles if we have new ones
+            if (newArticleIds.length > 0) {
+                const newArticles = loadedArticles.filter((a) =>
+                    newArticleIds.includes(a.id)
+                );
+
+                setArticles((prev) => {
+                    const existingIds = new Set(prev.map((a) => a.id));
+                    const combined = [...prev];
+                    newArticles.forEach((a) => {
+                        if (!existingIds.has(a.id)) combined.push(a);
+                    });
+                    // sort newest first
+                    combined.sort(
+                        (a, b) =>
+                            new Date(b.pubDate).getTime() -
+                            new Date(a.pubDate).getTime()
+                    );
+                    return combined;
+                });
+            }
         }
-    }, [loadedFeeds, loadedArticles]);
+    }, [currentFeedIds, currentArticleIds, loadedFeeds, loadedArticles]);
 
-    const filteredArticles = useMemo(() => {
-        return articles
-            .filter((article) => {
-                const feed = feeds.find((f) => f.id === article.feedId);
-                const category = feed?.category ?? "Altele";
-
-                // Filter by enabled state first
-                if (
-                    !enabledFeeds[article.feedId] ||
-                    !enabledCategories[category]
-                ) {
-                    return false;
-                }
-
-                // Filter by selected feed or category
-                let categoryMatch = true;
-                let feedMatch = true;
-
-                if (selectedFeed) {
-                    feedMatch = article.feedId === selectedFeed;
-                } else if (selectedCategory) {
-                    categoryMatch = category === selectedCategory;
-                }
-
-                // Prepare normalized versions for diacritic-insensitive matching
-                const normalizedQuery = normalizeText(searchQuery);
-                const titleNorm = normalizeText(article.title);
-                const descNorm = normalizeText(article.description);
-
-                const searchMatch = searchQuery
-                    ? titleNorm.includes(normalizedQuery) ||
-                      descNorm.includes(normalizedQuery)
-                    : true;
-
-                return feedMatch && categoryMatch && searchMatch;
-            })
-            .sort((a, b) => {
-                // Sort by publication date, newest first
-                return (
-                    new Date(b.pubDate).getTime() -
-                    new Date(a.pubDate).getTime()
-                );
-            });
-    }, [
-        articles,
+    // Use infinite articles hook for optimized rendering and memory usage
+    const {
+        displayedArticles,
+        hasMore,
+        isLoading: isLoadingMore,
+        loadMore,
+        reset,
+        totalAvailable,
+        isSearching,
+    } = useInfiniteArticles({
+        allArticles: articles,
         feeds,
+        searchQuery,
         selectedFeed,
         selectedCategory,
-        searchQuery,
         enabledFeeds,
         enabledCategories,
-    ]);
+    });
 
+    // Reset infinite scroll when search changes
     useEffect(() => {
-        setIsSearching(true);
-        const timer = setTimeout(() => setIsSearching(false), 500); // Simulate search time
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
+        reset();
+    }, [searchQuery, reset]);
+
+    // Reset infinite scroll when filters change
+    useEffect(() => {
+        reset();
+    }, [selectedFeed, selectedCategory, reset]);
 
     // Show/Hide scroll-to-top button on mobile
     useEffect(() => {
@@ -191,9 +201,9 @@ const Index = () => {
         }
     };
 
-    const handleSearch = (query: string) => {
+    const handleSearch = useCallback((query: string) => {
         setSearchQuery(query);
-    };
+    }, []);
 
     const handleToggleFeed = (feedId: string, enabled: boolean) => {
         setEnabledFeeds((prev) => ({ ...prev, [feedId]: enabled }));
@@ -331,35 +341,21 @@ const Index = () => {
                                     </Badge>
                                 )}
                                 <span className="font-medium text-foreground/80 whitespace-nowrap">
-                                    {filteredArticles.length} din{" "}
-                                    {articles.length} articole
+                                    {displayedArticles.length} din{" "}
+                                    {totalAvailable} articole
                                 </span>
                             </div>
                         </div>
                     </header>
                     <main className="flex-1 p-6 pt-4 md:pt-6">
-                        <ArticleGridVirtual
-                            articles={filteredArticles}
+                        <ArticleGridInfinite
+                            articles={displayedArticles}
                             feeds={feeds}
+                            hasMore={hasMore}
+                            isLoading={isLoadingMore}
+                            onLoadMore={loadMore}
+                            totalAvailable={totalAvailable}
                         />
-
-                        {filteredArticles.length === 0 && (
-                            <div className="text-center py-12">
-                                <div className="text-muted-foreground text-6xl mb-4">
-                                    {searchQuery ? "🔍" : "📰"}
-                                </div>
-                                <h3 className="text-xl font-semibold text-foreground mb-2">
-                                    {searchQuery
-                                        ? "Nu am găsit articole"
-                                        : "Nu există articole"}
-                                </h3>
-                                <p className="text-muted-foreground">
-                                    {searchQuery
-                                        ? `Încearcă alți termeni sau șterge căutarea.`
-                                        : "Adaugă fluxuri RSS pentru a începe!"}
-                                </p>
-                            </div>
-                        )}
                     </main>
                     {showScrollTop && (
                         <button

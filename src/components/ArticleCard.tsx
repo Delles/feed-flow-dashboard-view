@@ -7,7 +7,7 @@ import {
 import { Article, RSSFeed } from "@/types/rss";
 import { Rss, Clock } from "lucide-react";
 import { getOptimisedImage } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface ArticleCardProps {
     article: Article;
@@ -57,8 +57,30 @@ export function ArticleCard({
     isFirst = false,
 }: ArticleCardProps) {
     const feed = feeds.find((f) => f.id === article.feedId);
-
+    const imgRef = useRef<HTMLImageElement>(null);
     const [useOriginal, setUseOriginal] = useState(false);
+    const [isVisible, setIsVisible] = useState(isFirst);
+    const [imageLoaded, setImageLoaded] = useState(false);
+
+    // Intersection Observer for lazy loading images only when needed
+    useEffect(() => {
+        if (!imgRef.current || isFirst) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const [entry] = entries;
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: "50px" }
+        );
+
+        observer.observe(imgRef.current);
+
+        return () => observer.disconnect();
+    }, [isFirst]);
 
     const src =
         useOriginal && article.image
@@ -91,24 +113,40 @@ export function ArticleCard({
             className="flex flex-col h-[460px] overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
             {article.image ? (
-                <div className="aspect-video overflow-hidden">
-                    <img
-                        src={src}
-                        srcSet={srcSet}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        alt={article.title}
-                        className="w-full h-full object-cover"
-                        loading={isFirst ? "eager" : "lazy"}
-                        decoding="async"
-                        fetchPriority={isFirst ? "high" : undefined}
-                        width={640}
-                        height={360}
-                        onError={() => {
-                            if (!useOriginal) {
-                                setUseOriginal(true);
-                            }
-                        }}
-                    />
+                <div className="aspect-video overflow-hidden" ref={imgRef}>
+                    {isVisible ? (
+                        <img
+                            src={src}
+                            srcSet={srcSet}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            alt={article.title}
+                            className={`w-full h-full object-cover transition-opacity duration-300 ${
+                                imageLoaded ? "opacity-100" : "opacity-0"
+                            }`}
+                            loading={isFirst ? "eager" : "lazy"}
+                            decoding="async"
+                            width={640}
+                            height={360}
+                            onLoad={() => setImageLoaded(true)}
+                            onError={() => {
+                                if (!useOriginal) {
+                                    setUseOriginal(true);
+                                } else {
+                                    setImageLoaded(true); // Show broken image state
+                                }
+                            }}
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-muted/30 animate-pulse flex items-center justify-center">
+                            <Rss className="w-8 h-8 text-muted-foreground/50" />
+                        </div>
+                    )}
+                    {/* Loading overlay */}
+                    {isVisible && !imageLoaded && (
+                        <div className="absolute inset-0 bg-muted/30 animate-pulse flex items-center justify-center">
+                            <Rss className="w-8 h-8 text-muted-foreground/50" />
+                        </div>
+                    )}
                 </div>
             ) : (
                 <div className="aspect-video bg-muted/50 flex items-center justify-center">

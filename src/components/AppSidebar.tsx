@@ -196,9 +196,7 @@ export function AppSidebar({
                                     <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1.5 rounded-full font-semibold">
                                         {feedsByCategory[category].length}
                                     </span>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
+                                    <div
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             onToggleCategory(
@@ -206,14 +204,14 @@ export function AppSidebar({
                                                 !isCategoryEnabled
                                             );
                                         }}
-                                        className="h-8 w-8 p-0 hover:bg-accent rounded-lg"
+                                        className="h-8 w-8 p-0 hover:bg-accent rounded-lg flex items-center justify-center cursor-pointer transition-colors"
                                     >
                                         {isCategoryEnabled ? (
                                             <Eye className="h-4 w-4 text-muted-foreground" />
                                         ) : (
                                             <EyeOff className="h-4 w-4 text-muted-foreground/50" />
                                         )}
-                                    </Button>
+                                    </div>
                                 </div>
                             </div>
                             <SidebarGroupContent>
@@ -289,9 +287,7 @@ export function AppSidebar({
                                                                                 0}
                                                                         </span>
                                                                     </div>
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="sm"
+                                                                    <div
                                                                         onClick={(
                                                                             e
                                                                         ) => {
@@ -301,17 +297,18 @@ export function AppSidebar({
                                                                                 !isFeedEnabled
                                                                             );
                                                                         }}
-                                                                        className="h-7 w-7 p-0 hover:bg-accent rounded-md"
-                                                                        disabled={
+                                                                        className={`h-7 w-7 p-0 hover:bg-accent rounded-md flex items-center justify-center cursor-pointer transition-colors ${
                                                                             !isCategoryEnabled
-                                                                        }
+                                                                                ? "opacity-50 cursor-not-allowed"
+                                                                                : ""
+                                                                        }`}
                                                                     >
                                                                         {isItemEnabled ? (
                                                                             <Eye className="h-3.5 w-3.5 text-muted-foreground" />
                                                                         ) : (
                                                                             <EyeOff className="h-3.5 w-3.5 text-muted-foreground/50" />
                                                                         )}
-                                                                    </Button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
