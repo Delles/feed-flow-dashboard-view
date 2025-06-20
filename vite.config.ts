@@ -29,6 +29,14 @@ export default defineConfig(({ mode }) => ({
     // Split large third-party dependencies into their own chunks so that
     // the initial bundle stays small and the browser can cache vendors.
     build: {
+        cssMinify: true,
+        minify: "terser",
+        terserOptions: {
+            compress: {
+                drop_console: true,
+                drop_debugger: true,
+            },
+        },
         rollupOptions: {
             output: {
                 manualChunks(id) {

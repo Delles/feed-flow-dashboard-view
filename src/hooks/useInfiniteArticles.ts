@@ -3,8 +3,8 @@ import { Article, RSSFeed } from "@/types/rss";
 import { normalizeText } from "@/lib/normalizeText";
 import { useDebounce } from "./use-debounce";
 
-const ARTICLES_PER_PAGE = 20;
-const MAX_CACHED_ARTICLES = 500; // Limit memory usage
+const ARTICLES_PER_PAGE = 15; // Reduced from 20 for better initial performance
+const MAX_CACHED_ARTICLES = 300; // Reduced from 500 to limit DOM size
 
 export interface InfiniteArticlesConfig {
     allArticles: Article[];

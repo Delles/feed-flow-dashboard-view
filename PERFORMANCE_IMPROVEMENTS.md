@@ -1,100 +1,83 @@
 # Performance Improvements
 
-## Issues Addressed
+This document tracks performance optimizations implemented to improve Core Web Vitals.
 
-This update addresses major performance and memory usage issues in the RSS feed dashboard:
+## Recent Lighthouse Issues Addressed (2025-01-20)
 
-### Previous Issues:
+### Cumulative Layout Shift (CLS) - Reduced from 0.863
 
-1. **Mass Data Loading**: Loading ALL articles from 13+ RSS feeds at once (hundreds/thousands of articles)
-2. **Memory-Heavy Rendering**: All article data kept in memory simultaneously
-3. **Inefficient Image Loading**: All images loaded regardless of visibility
-4. **Heavy DOM**: All article cards rendered in DOM even if not visible
-5. **Inefficient Filtering**: Full dataset filtering on every search/filter change
+-   **ArticleCard Layout Stability**:
 
-## Solutions Implemented
+    -   Added permanent placeholder background to prevent image loading shifts
+    -   Used absolute positioning for images over placeholders
+    -   Added explicit dimensions (`width={384} height={216}`) to images
+    -   Fixed favicon dimensions with `flex-shrink-0` and explicit sizes
 
-### 1. True Infinite Scrolling (`useInfiniteArticles`)
+-   **Reduced Initial DOM Size**:
+    -   Decreased articles per page from 20 → 15
+    -   Reduced max cached articles from 500 → 300
+    -   Limited skeleton placeholders: mobile 2→1, desktop 6→3
 
--   **Pagination**: Loads 20 articles at a time instead of all articles
--   **Memory Limit**: Caps at 500 articles in memory to prevent excessive usage
--   **Smart Filtering**: Pre-filters article IDs before rendering to optimize performance
--   **Debounced Search**: 300ms debounce prevents excessive filtering during typing
+### Largest Contentful Paint (LCP) - Target under 1.5s
 
-### 2. Optimized Image Loading (`ArticleCard`)
+-   **Priority Image Loading**:
+    -   Added `fetchPriority="high"` to first article image
+    -   Kept `loading="eager"` for first image, `lazy` for others
 
--   **Intersection Observer**: Images only load when near viewport
--   **Progressive Loading**: Placeholder → Optimized Image → Fallback
--   **Memory Efficient**: Unloaded images don't consume memory
--   **Loading States**: Smooth transitions with loading indicators
+### Image Optimization - 72KB savings potential
 
-### 3. Intelligent Component Architecture
+-   **Right-sized Images**:
+    -   Optimized default image width: 640px → 384px (matches ~350px display)
+    -   Improved srcSet: `320w,640w,960w` → `384w,512w,768w`
+    -   Better sizes attribute: `33vw` → `384px` for desktop
+    -   Increased compression quality for smaller files (quality=80)
 
--   **Separated Concerns**: Data fetching vs. rendering vs. infinite scrolling
--   **Efficient Re-renders**: Only affected components re-render on state changes
--   **Intersection Observer**: Smooth infinite scroll without scroll event listeners
+### Network Optimizations
 
-## Performance Benefits
+-   **Resource Hints**:
+    -   Added `preconnect` to `corsproxy.io` for faster RSS feed loading
+    -   Existing `preconnect` to `images.weserv.nl` for image proxy
 
-### Memory Usage:
+### Build Optimizations
 
--   **Before**: ~500-2000 articles × ~2MB each = 1-4GB+ memory
--   **After**: Max 500 articles × optimized images = ~200-500MB memory
--   **Improvement**: 80-90% memory reduction
+-   **Enhanced Minification**:
+    -   Enabled `cssMinify: true`
+    -   Added `terser` minification with aggressive compression
+    -   Console/debugger removal in production builds
 
-### Rendering Performance:
+## Legacy Optimizations
 
--   **Before**: All articles in DOM at once (slow scrolling, janky interactions)
--   **After**: Only visible + buffer articles in DOM (smooth 60fps scrolling)
--   **Improvement**: 10x faster scrolling and interactions
+### Initial Load Performance
 
-### Initial Load:
+-   RSS feeds load incrementally with React Query
+-   Image lazy loading with Intersection Observer
+-   Virtual scrolling for large article lists
+-   Chunked vendor bundles (React, Radix UI, Tanstack Query, Lucide)
 
--   **Before**: 3-10 second wait for all data to load
--   **After**: <1 second for first 20 articles, progressive loading
--   **Improvement**: 3-10x faster perceived load time
+### Memory Management
 
-### Search Performance:
+-   Article list virtualization prevents memory bloat
+-   Intersection Observer-based infinite scroll
+-   Smart cache limits to prevent excessive DOM
 
--   **Before**: Full text search on all articles on every keystroke
--   **After**: Debounced search with optimized filtering
--   **Improvement**: No lag during typing
+### Image Delivery
 
-## Technical Implementation
+-   WebP/AVIF via images.weserv.nl proxy
+-   Responsive images with srcset
+-   Fallback to original URLs on proxy failure
 
-### Key Files:
+### Bundle Optimization
 
--   `src/hooks/useInfiniteArticles.ts` - Infinite scrolling logic
--   `src/components/ArticleGridInfinite.tsx` - Optimized grid rendering
--   `src/components/ArticleCard.tsx` - Enhanced with intersection observer
--   `src/pages/Index.tsx` - Updated to use new architecture
+-   Brotli compression enabled
+-   Manual vendor chunking for better caching
+-   CSS and JS minification
 
-### Configuration:
+## Expected Impact
 
--   `ARTICLES_PER_PAGE = 20` - Balances performance vs. UX
--   `MAX_CACHED_ARTICLES = 500` - Prevents memory bloat
--   `debounceDelay = 300ms` - Optimal for search responsiveness
--   `rootMargin = "50px"` - Image preloading distance
+-   **CLS**: Significant reduction from 0.863 to target <0.1
+-   **LCP**: Faster image loading, target <1.5s consistently
+-   **Bundle Size**: ~23KB JavaScript savings from minification
+-   **Image Bandwidth**: ~72KB savings per page load
+-   **DOM Size**: Reduced initial elements for faster rendering
 
-## Future Optimizations
-
-1. **Virtual Scrolling**: For very large datasets (1000+ articles)
-2. **Service Worker Caching**: For offline article reading
-3. **Image Preloading**: Intelligent prefetching based on scroll velocity
-4. **Background Sync**: Update feeds without blocking UI
-
-## Testing Performance
-
-To test the improvements:
-
-1. Open DevTools → Performance tab
-2. Enable "Memory" and "FPS" monitoring
-3. Compare scrolling performance and memory usage
-4. Test search functionality with rapid typing
-
-Expected results:
-
--   Smooth 60fps scrolling
--   Memory usage stays under 500MB
--   No janky interactions during search
--   Fast initial page load
+Run Lighthouse after deployment to verify improvements.

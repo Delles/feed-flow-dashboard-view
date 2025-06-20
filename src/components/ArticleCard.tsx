@@ -86,17 +86,19 @@ export function ArticleCard({
         useOriginal && article.image
             ? article.image
             : article.image
-            ? getOptimisedImage(article.image, 640)
+            ? getOptimisedImage(article.image, 384, 80) // Optimize for actual display size ~350px
             : "";
     const srcSet =
         !useOriginal && article.image
             ? `${getOptimisedImage(
                   article.image,
-                  320
-              )} 320w, ${getOptimisedImage(
+                  384,
+                  80
+              )} 384w, ${getOptimisedImage(
                   article.image,
-                  640
-              )} 640w, ${getOptimisedImage(article.image, 960)} 960w`
+                  512,
+                  80
+              )} 512w, ${getOptimisedImage(article.image, 768, 80)} 768w`
             : undefined;
 
     const openArticle = () => window.open(article.url, "_blank");
@@ -113,20 +115,28 @@ export function ArticleCard({
             className="flex flex-col h-[460px] overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
             {article.image ? (
-                <div className="aspect-video overflow-hidden" ref={imgRef}>
-                    {isVisible ? (
+                <div
+                    className="aspect-video overflow-hidden relative"
+                    ref={imgRef}
+                >
+                    {/* Always show placeholder first to prevent layout shift */}
+                    <div className="w-full h-full bg-muted/30 flex items-center justify-center absolute inset-0">
+                        <Rss className="w-8 h-8 text-muted-foreground/50" />
+                    </div>
+                    {isVisible && (
                         <img
                             src={src}
                             srcSet={srcSet}
-                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 350px, 384px"
                             alt={article.title}
-                            className={`w-full h-full object-cover transition-opacity duration-300 ${
+                            className={`w-full h-full object-cover transition-opacity duration-300 absolute inset-0 ${
                                 imageLoaded ? "opacity-100" : "opacity-0"
                             }`}
                             loading={isFirst ? "eager" : "lazy"}
+                            fetchPriority={isFirst ? "high" : "auto"}
                             decoding="async"
-                            width={640}
-                            height={360}
+                            width={384}
+                            height={216}
                             onLoad={() => setImageLoaded(true)}
                             onError={() => {
                                 if (!useOriginal) {
@@ -136,16 +146,6 @@ export function ArticleCard({
                                 }
                             }}
                         />
-                    ) : (
-                        <div className="w-full h-full bg-muted/30 animate-pulse flex items-center justify-center">
-                            <Rss className="w-8 h-8 text-muted-foreground/50" />
-                        </div>
-                    )}
-                    {/* Loading overlay */}
-                    {isVisible && !imageLoaded && (
-                        <div className="absolute inset-0 bg-muted/30 animate-pulse flex items-center justify-center">
-                            <Rss className="w-8 h-8 text-muted-foreground/50" />
-                        </div>
                     )}
                 </div>
             ) : (
@@ -161,10 +161,14 @@ export function ArticleCard({
                                 <img
                                     src={feed.favicon}
                                     alt={`${feed.title} favicon`}
-                                    className="w-4 h-4"
+                                    className="w-4 h-4 flex-shrink-0"
+                                    width={16}
+                                    height={16}
+                                    loading="lazy"
+                                    decoding="async"
                                 />
                             ) : (
-                                <span className="text-base leading-none">
+                                <span className="text-base leading-none w-4 h-4 flex-shrink-0 flex items-center justify-center">
                                     {feed.favicon}
                                 </span>
                             ))}
