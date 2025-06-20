@@ -42,8 +42,8 @@ This document tracks performance optimizations implemented to improve Core Web V
 
 -   **Enhanced Minification**:
     -   Enabled `cssMinify: true`
-    -   Added `terser` minification with aggressive compression
-    -   Console/debugger removal in production builds
+    -   Using `esbuild` minification (faster than terser, no extra dependencies)
+    -   Aggressive tree-shaking and compression
 
 ## Legacy Optimizations
 

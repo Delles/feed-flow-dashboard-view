@@ -30,13 +30,7 @@ export default defineConfig(({ mode }) => ({
     // the initial bundle stays small and the browser can cache vendors.
     build: {
         cssMinify: true,
-        minify: "terser",
-        terserOptions: {
-            compress: {
-                drop_console: true,
-                drop_debugger: true,
-            },
-        },
+        minify: "esbuild", // Use esbuild (default) - faster and doesn't require extra deps
         rollupOptions: {
             output: {
                 manualChunks(id) {
