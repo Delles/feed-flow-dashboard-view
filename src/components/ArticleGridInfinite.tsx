@@ -120,8 +120,7 @@ export function ArticleGridInfinite({
             {!hasMore && articles.length > 0 && (
                 <div className="text-center py-8 text-sm text-muted-foreground border-t">
                     <p>
-                        Afișate toate articolele disponibile ({articles.length}{" "}
-                        din {totalAvailable})
+                        Afișate toate articolele disponibile ({totalAvailable})
                     </p>
                     {articles.length >= 500 && (
                         <p className="mt-2 text-xs">

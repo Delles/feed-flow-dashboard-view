@@ -341,7 +341,6 @@ const Index = () => {
                                     </Badge>
                                 )}
                                 <span className="font-medium text-foreground/80 whitespace-nowrap">
-                                    {displayedArticles.length} din{" "}
                                     {totalAvailable} articole
                                 </span>
                             </div>
