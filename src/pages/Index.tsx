@@ -254,38 +254,85 @@ const Index = () => {
 
     // Show loading state
     if (isInitialLoading) {
+        // Detailed skeleton that matches the final layout to prevent CLS
         return (
             <SidebarProvider>
                 <div className="min-h-screen flex w-full bg-background justify-center">
                     {!isMobile ? (
                         // Desktop skeleton layout
                         <>
-                            <div className="w-64 border-r border-slate-200 p-4">
-                                <div className="flex items-center gap-2 mb-6">
-                                    <Skeleton className="h-6 w-6 rounded" />
-                                    <Skeleton className="h-6 w-24" />
+                            <div className="w-80 border-r border-border p-6 shrink-0">
+                                {/* Sidebar Header Skeleton */}
+                                <div className="flex items-center gap-4 pb-6 border-b border-border">
+                                    <Skeleton className="h-12 w-12 rounded-xl" />
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-6 w-24" />
+                                        <Skeleton className="h-4 w-32" />
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    {Array.from({ length: 5 }).map((_, i) => (
-                                        <Skeleton
-                                            key={i}
-                                            className="h-12 w-full rounded"
-                                        />
+                                {/* Sidebar Content Skeleton */}
+                                <div className="space-y-2 py-4">
+                                    <Skeleton className="h-24 w-full rounded-lg" />
+                                    {Array.from({ length: 3 }).map((_, i) => (
+                                        <div key={i} className="pt-4 space-y-4">
+                                            <div className="flex justify-between items-center px-2">
+                                                <Skeleton className="h-8 w-2/5" />
+                                                <Skeleton className="h-6 w-12 rounded-full" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Skeleton className="h-16 w-full rounded-lg" />
+                                                <Skeleton className="h-16 w-full rounded-lg" />
+                                            </div>
+                                        </div>
                                     ))}
                                 </div>
                             </div>
                             <main className="flex-1 p-6">
-                                <div className="flex items-center justify-between mb-8">
-                                    <Skeleton className="h-8 w-48" />
-                                    <Skeleton className="h-8 w-8 rounded" />
+                                {/* Header Skeleton */}
+                                <div className="flex flex-col gap-2 px-4 py-2 mb-6 md:px-0">
+                                    <div className="flex items-center gap-4 h-12">
+                                        <div className="flex-1">
+                                            <Skeleton className="h-10 w-full max-w-xl" />
+                                        </div>
+                                        <Skeleton className="h-9 w-9 rounded-full" />
+                                    </div>
+                                    <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
+                                        <Skeleton className="h-8 w-24" />
+                                        <div className="flex items-center gap-2">
+                                            <Skeleton className="h-6 w-32 rounded-full" />
+                                            <Skeleton className="h-4 w-28" />
+                                        </div>
+                                    </div>
                                 </div>
-                                <Skeleton className="h-10 w-full max-w-lg mb-6" />
+
+                                {/* Article Grid Skeleton */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {Array.from({ length: 6 }).map((_, i) => (
-                                        <Skeleton
+                                        <div
                                             key={i}
-                                            className="h-64 rounded-lg"
-                                        />
+                                            className="flex flex-col h-[460px] overflow-hidden rounded-lg border bg-card"
+                                        >
+                                            <Skeleton className="w-full aspect-video" />
+                                            <div className="p-4 space-y-3">
+                                                <div className="flex items-center gap-3">
+                                                    <Skeleton className="w-4 h-4" />
+                                                    <Skeleton className="w-24 h-4" />
+                                                    <Skeleton className="w-16 h-4" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Skeleton className="w-full h-5" />
+                                                    <Skeleton className="w-11/12 h-5" />
+                                                </div>
+                                            </div>
+                                            <div className="p-4 pt-0 flex-grow space-y-1.5">
+                                                <Skeleton className="w-full h-3.5" />
+                                                <Skeleton className="w-full h-3.5" />
+                                                <Skeleton className="w-5/6 h-3.5" />
+                                            </div>
+                                            <div className="p-4 pt-0 mt-auto">
+                                                <Skeleton className="w-28 h-5" />
+                                            </div>
+                                        </div>
                                     ))}
                                 </div>
                             </main>
@@ -293,42 +340,46 @@ const Index = () => {
                     ) : (
                         // Mobile skeleton layout
                         <div className="flex flex-col flex-1 w-full max-w-6xl mx-4">
-                            <header className="sticky top-0 z-10 flex flex-col gap-2 px-4 py-2 bg-background/95 border-b backdrop-blur">
+                            <header className="sticky top-0 z-10 flex flex-col gap-2 px-0 py-2 bg-background/95 border-b backdrop-blur">
                                 <div className="flex items-center gap-4 h-12">
-                                    <Skeleton className="h-8 w-8 rounded" />
+                                    <Skeleton className="h-9 w-9" />
                                     <Skeleton className="h-10 flex-1" />
-                                    <Skeleton className="h-8 w-8 rounded" />
+                                    <Skeleton className="h-9 w-9 rounded-full" />
                                 </div>
                                 <div className="flex flex-col items-start gap-2">
-                                    <Skeleton className="h-6 w-16" />
+                                    <Skeleton className="h-8 w-24" />
                                     <div className="flex items-center gap-2">
-                                        <Skeleton className="h-6 w-20 rounded-full" />
-                                        <Skeleton className="h-4 w-24" />
+                                        <Skeleton className="h-6 w-32 rounded-full" />
+                                        <Skeleton className="h-4 w-28" />
                                     </div>
                                 </div>
                             </header>
-                            <main className="flex-1 p-4 pt-4">
+                            <main className="flex-1 pt-4">
                                 <div className="space-y-4">
                                     {Array.from({ length: 3 }).map((_, i) => (
                                         <div
                                             key={i}
-                                            className="bg-card rounded-lg border p-4 space-y-3"
+                                            className="flex flex-col h-[460px] overflow-hidden rounded-lg border bg-card"
                                         >
-                                            <Skeleton className="aspect-video w-full rounded-lg" />
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Skeleton className="h-4 w-4 rounded" />
-                                                    <Skeleton className="h-3 w-20" />
-                                                    <Skeleton className="h-3 w-16" />
+                                            <Skeleton className="w-full aspect-video" />
+                                            <div className="p-4 space-y-3">
+                                                <div className="flex items-center gap-3">
+                                                    <Skeleton className="w-4 h-4" />
+                                                    <Skeleton className="w-24 h-4" />
+                                                    <Skeleton className="w-16 h-4" />
                                                 </div>
-                                                <Skeleton className="h-5 w-full" />
-                                                <Skeleton className="h-5 w-3/4" />
-                                                <div className="space-y-1">
-                                                    <Skeleton className="h-3 w-full" />
-                                                    <Skeleton className="h-3 w-5/6" />
-                                                    <Skeleton className="h-3 w-2/3" />
+                                                <div className="space-y-2">
+                                                    <Skeleton className="w-full h-5" />
+                                                    <Skeleton className="w-11/12 h-5" />
                                                 </div>
-                                                <Skeleton className="h-4 w-24" />
+                                            </div>
+                                            <div className="p-4 pt-0 flex-grow space-y-1.5">
+                                                <Skeleton className="w-full h-3.5" />
+                                                <Skeleton className="w-full h-3.5" />
+                                                <Skeleton className="w-5/6 h-3.5" />
+                                            </div>
+                                            <div className="p-4 pt-0 mt-auto">
+                                                <Skeleton className="w-28 h-5" />
                                             </div>
                                         </div>
                                     ))}
