@@ -10,6 +10,7 @@ import { useIncrementalFeeds } from "@/hooks/useIncrementalFeeds";
 import { useInfiniteArticles } from "@/hooks/useInfiniteArticles";
 import { Article, RSSFeed } from "@/types/rss";
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
     const {
@@ -46,6 +47,8 @@ const Index = () => {
     // Track processed IDs to prevent re-processing
     const processedFeedIds = useRef(new Set<string>());
     const processedArticleIds = useRef(new Set<string>());
+
+    const isMobile = useIsMobile();
 
     useEffect(() => {
         // Find truly new feeds that haven't been processed
@@ -254,32 +257,85 @@ const Index = () => {
         return (
             <SidebarProvider>
                 <div className="min-h-screen flex w-full bg-background justify-center">
-                    <div className="w-64 border-r border-slate-200 p-4">
-                        <div className="flex items-center gap-2 mb-6">
-                            <Skeleton className="h-6 w-6 rounded" />
-                            <Skeleton className="h-6 w-24" />
+                    {!isMobile ? (
+                        // Desktop skeleton layout
+                        <>
+                            <div className="w-64 border-r border-slate-200 p-4">
+                                <div className="flex items-center gap-2 mb-6">
+                                    <Skeleton className="h-6 w-6 rounded" />
+                                    <Skeleton className="h-6 w-24" />
+                                </div>
+                                <div className="space-y-2">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <Skeleton
+                                            key={i}
+                                            className="h-12 w-full rounded"
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            <main className="flex-1 p-6">
+                                <div className="flex items-center justify-between mb-8">
+                                    <Skeleton className="h-8 w-48" />
+                                    <Skeleton className="h-8 w-8 rounded" />
+                                </div>
+                                <Skeleton className="h-10 w-full max-w-lg mb-6" />
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                        <Skeleton
+                                            key={i}
+                                            className="h-64 rounded-lg"
+                                        />
+                                    ))}
+                                </div>
+                            </main>
+                        </>
+                    ) : (
+                        // Mobile skeleton layout
+                        <div className="flex flex-col flex-1 w-full max-w-6xl mx-4">
+                            <header className="sticky top-0 z-10 flex flex-col gap-2 px-4 py-2 bg-background/95 border-b backdrop-blur">
+                                <div className="flex items-center gap-4 h-12">
+                                    <Skeleton className="h-8 w-8 rounded" />
+                                    <Skeleton className="h-10 flex-1" />
+                                    <Skeleton className="h-8 w-8 rounded" />
+                                </div>
+                                <div className="flex flex-col items-start gap-2">
+                                    <Skeleton className="h-6 w-16" />
+                                    <div className="flex items-center gap-2">
+                                        <Skeleton className="h-6 w-20 rounded-full" />
+                                        <Skeleton className="h-4 w-24" />
+                                    </div>
+                                </div>
+                            </header>
+                            <main className="flex-1 p-4 pt-4">
+                                <div className="space-y-4">
+                                    {Array.from({ length: 3 }).map((_, i) => (
+                                        <div
+                                            key={i}
+                                            className="bg-card rounded-lg border p-4 space-y-3"
+                                        >
+                                            <Skeleton className="aspect-video w-full rounded-lg" />
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Skeleton className="h-4 w-4 rounded" />
+                                                    <Skeleton className="h-3 w-20" />
+                                                    <Skeleton className="h-3 w-16" />
+                                                </div>
+                                                <Skeleton className="h-5 w-full" />
+                                                <Skeleton className="h-5 w-3/4" />
+                                                <div className="space-y-1">
+                                                    <Skeleton className="h-3 w-full" />
+                                                    <Skeleton className="h-3 w-5/6" />
+                                                    <Skeleton className="h-3 w-2/3" />
+                                                </div>
+                                                <Skeleton className="h-4 w-24" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </main>
                         </div>
-                        <div className="space-y-2">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                                <Skeleton
-                                    key={i}
-                                    className="h-12 w-full rounded"
-                                />
-                            ))}
-                        </div>
-                    </div>
-                    <main className="flex-1 p-6">
-                        <div className="flex items-center justify-between mb-8">
-                            <Skeleton className="h-8 w-48" />
-                            <Skeleton className="h-8 w-8 rounded" />
-                        </div>
-                        <Skeleton className="h-10 w-full max-w-lg mb-6" />
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {Array.from({ length: 6 }).map((_, i) => (
-                                <Skeleton key={i} className="h-64 rounded-lg" />
-                            ))}
-                        </div>
-                    </main>
+                    )}
                 </div>
             </SidebarProvider>
         );

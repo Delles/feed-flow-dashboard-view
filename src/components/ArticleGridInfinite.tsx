@@ -76,36 +76,81 @@ export function ArticleGridInfinite({
     return (
         <div className="space-y-6">
             {/* Articles Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {articles.map((article, index) => (
-                    <ArticleCard
-                        key={article.id}
-                        article={article}
-                        feeds={feeds}
-                        isFirst={index === 0}
-                    />
-                ))}
-            </div>
+            {!isMobile ? (
+                // Desktop layout - grid
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {articles.map((article, index) => (
+                        <ArticleCard
+                            key={article.id}
+                            article={article}
+                            feeds={feeds}
+                            isFirst={index === 0}
+                        />
+                    ))}
+                </div>
+            ) : (
+                // Mobile layout - single column
+                <div className="space-y-4">
+                    {articles.map((article, index) => (
+                        <ArticleCard
+                            key={article.id}
+                            article={article}
+                            feeds={feeds}
+                            isFirst={index === 0}
+                        />
+                    ))}
+                </div>
+            )}
 
             {/* Loading More Indicator */}
             {hasMore && (
                 <div ref={loadMoreRef} className="py-8">
                     {isLoading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {Array.from({ length: isMobile ? 1 : 3 }).map(
-                                (_, i) => (
-                                    <div key={i} className="space-y-3">
-                                        <Skeleton className="aspect-video w-full rounded-lg" />
-                                        <div className="space-y-2 p-2">
-                                            <Skeleton className="h-4 w-3/4" />
-                                            <Skeleton className="h-3 w-1/2" />
-                                            <Skeleton className="h-3 w-full" />
-                                            <Skeleton className="h-3 w-2/3" />
+                        <>
+                            {!isMobile ? (
+                                // Desktop skeleton - grid layout
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {Array.from({ length: 3 }).map((_, i) => (
+                                        <div key={i} className="space-y-3">
+                                            <Skeleton className="aspect-video w-full rounded-lg" />
+                                            <div className="space-y-2 p-2">
+                                                <Skeleton className="h-4 w-3/4" />
+                                                <Skeleton className="h-3 w-1/2" />
+                                                <Skeleton className="h-3 w-full" />
+                                                <Skeleton className="h-3 w-2/3" />
+                                            </div>
                                         </div>
-                                    </div>
-                                )
+                                    ))}
+                                </div>
+                            ) : (
+                                // Mobile skeleton - single column layout
+                                <div className="space-y-4">
+                                    {Array.from({ length: 2 }).map((_, i) => (
+                                        <div
+                                            key={i}
+                                            className="bg-card rounded-lg border p-4 space-y-3"
+                                        >
+                                            <Skeleton className="aspect-video w-full rounded-lg" />
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Skeleton className="h-4 w-4 rounded" />
+                                                    <Skeleton className="h-3 w-20" />
+                                                    <Skeleton className="h-3 w-16" />
+                                                </div>
+                                                <Skeleton className="h-5 w-full" />
+                                                <Skeleton className="h-5 w-3/4" />
+                                                <div className="space-y-1">
+                                                    <Skeleton className="h-3 w-full" />
+                                                    <Skeleton className="h-3 w-5/6" />
+                                                    <Skeleton className="h-3 w-2/3" />
+                                                </div>
+                                                <Skeleton className="h-4 w-24" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             )}
-                        </div>
+                        </>
                     ) : (
                         <div className="text-center">
                             <div className="text-sm text-muted-foreground">
