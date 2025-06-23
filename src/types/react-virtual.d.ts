@@ -1,5 +1,6 @@
 declare module "@tanstack/react-virtual" {
-    export function useVirtualizer<TScrollElement = any, TItemElement = any>(
-        opts: any
-    ): any;
+    export function useVirtualizer<
+        TScrollElement = Element,
+        TItemElement = Element
+    >(opts: Record<string, unknown>): Record<string, unknown>;
 }

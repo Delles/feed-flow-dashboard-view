@@ -8,6 +8,7 @@ export interface IncrementalFeedsResult {
     articles: Article[];
     isInitialLoading: boolean; // true until at least one feed loaded
     isFetching: boolean; // any query still fetching
+    refetch: () => Promise<void>; // function to refresh all feeds
 }
 
 export function useIncrementalFeeds(): IncrementalFeedsResult {
@@ -29,7 +30,8 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
                 }));
                 return { feed: updatedFeed, articles: updatedArticles };
             },
-            staleTime: 10 * 60 * 1000,
+            staleTime: 10 * 60 * 1000, // 10 minutes
+            gcTime: 30 * 60 * 1000, // 30 minutes (replaced cacheTime in newer versions)
             retry: 2,
             retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
         })),
@@ -54,5 +56,9 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
         feeds.length === 0 && queryResults.some((qr) => qr.isLoading);
     const isFetching = queryResults.some((qr) => qr.isFetching);
 
-    return { feeds, articles, isInitialLoading, isFetching };
+    const refetch = async () => {
+        await Promise.all(queryResults.map((qr) => qr.refetch()));
+    };
+
+    return { feeds, articles, isInitialLoading, isFetching, refetch };
 }

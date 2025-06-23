@@ -40,7 +40,7 @@
 
         --sidebar-foreground: 240 5.3% 26.1%;
 
-        --sidebar-primary: 240 5.9% 10%;
+        --sidebar-primary: 217.2 91.2% 59.8%; /* Modern blue that works well */
 
         --sidebar-primary-foreground: 0 0% 98%;
 
@@ -85,12 +85,12 @@
         /* Sidebar colors for dark mode */
         --sidebar-background: 240 5% 12%; /* slightly lighter than page bg to distinguish */
         --sidebar-foreground: 210 40% 98%; /* nearly white text */
-        --sidebar-primary: 212.7 91.2% 59.8%; /* brand blue */
+        --sidebar-primary: 217.2 91.2% 65%; /* slightly brighter blue for dark mode */
         --sidebar-primary-foreground: 210 40% 98%; /* text on primary */
         --sidebar-accent: 220 5% 20%; /* hover/active background */
         --sidebar-accent-foreground: 210 40% 98%; /* text on accent */
         --sidebar-border: 240 4% 20%; /* border colour */
-        --sidebar-ring: 212.7 91.2% 59.8%; /* focus ring */
+        --sidebar-ring: 217.2 91.2% 65%; /* focus ring */
     }
 }
 
@@ -122,6 +122,205 @@ body::-webkit-scrollbar {
 }
 .no-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome, Safari and Opera */
+}
+
+/* Modern UI Enhancements */
+@layer utilities {
+    /* Glass morphism effect */
+    .glass {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dark .glass {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Floating card effect */
+    .floating-card {
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+            0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .floating-card:hover {
+        box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1),
+            0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .dark .floating-card {
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3),
+            0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .dark .floating-card:hover {
+        box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.4),
+            0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Highlight gradients - optimized for both light and dark modes */
+    .highlight-gradient {
+        background: linear-gradient(
+            to right,
+            hsl(var(--sidebar-primary) / 0.08),
+            hsl(var(--sidebar-primary) / 0.05),
+            hsl(var(--sidebar-primary) / 0.03)
+        );
+        border: 1px solid hsl(var(--sidebar-primary) / 0.2);
+        box-shadow: 0 4px 6px -1px hsl(var(--sidebar-primary) / 0.08);
+    }
+
+    .dark .highlight-gradient {
+        background: linear-gradient(
+            to right,
+            hsl(var(--sidebar-primary) / 0.15),
+            hsl(var(--sidebar-primary) / 0.08),
+            hsl(var(--sidebar-primary) / 0.05)
+        );
+        border: 1px solid hsl(var(--sidebar-primary) / 0.3);
+        box-shadow: 0 4px 6px -1px hsl(var(--sidebar-primary) / 0.15);
+    }
+
+    /* Alternative highlight for special emphasis */
+    .highlight-gradient-strong {
+        background: linear-gradient(
+            to right,
+            hsl(var(--sidebar-primary) / 0.12),
+            hsl(var(--sidebar-primary) / 0.08),
+            hsl(var(--sidebar-primary) / 0.05)
+        );
+        border: 1px solid hsl(var(--sidebar-primary) / 0.25);
+        box-shadow: 0 8px 15px -3px hsl(var(--sidebar-primary) / 0.12);
+    }
+
+    .dark .highlight-gradient-strong {
+        background: linear-gradient(
+            to right,
+            hsl(var(--sidebar-primary) / 0.2),
+            hsl(var(--sidebar-primary) / 0.12),
+            hsl(var(--sidebar-primary) / 0.08)
+        );
+        border: 1px solid hsl(var(--sidebar-primary) / 0.4);
+        box-shadow: 0 8px 15px -3px hsl(var(--sidebar-primary) / 0.2);
+    }
+
+    /* Icon background gradients - for active states */
+    .icon-gradient {
+        background: linear-gradient(
+            135deg,
+            hsl(var(--sidebar-primary)),
+            hsl(var(--sidebar-primary) / 0.8)
+        );
+    }
+
+    .dark .icon-gradient {
+        background: linear-gradient(
+            135deg,
+            hsl(var(--sidebar-primary)),
+            hsl(var(--sidebar-primary) / 0.7)
+        );
+    }
+
+    /* Subtle icon background for selected states */
+    .icon-subtle {
+        background: linear-gradient(
+            135deg,
+            hsl(var(--sidebar-primary) / 0.15),
+            hsl(var(--sidebar-primary) / 0.08)
+        );
+        border: 1px solid hsl(var(--sidebar-primary) / 0.2);
+    }
+
+    .dark .icon-subtle {
+        background: linear-gradient(
+            135deg,
+            hsl(var(--sidebar-primary) / 0.25),
+            hsl(var(--sidebar-primary) / 0.15)
+        );
+        border: 1px solid hsl(var(--sidebar-primary) / 0.3);
+    }
+
+    /* Smooth scaling animation */
+    .scale-hover {
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .scale-hover:hover {
+        transform: scale(1.02);
+    }
+
+    .scale-hover:active {
+        transform: scale(0.98);
+    }
+
+    /* Status indicators */
+    .status-indicator {
+        position: relative;
+    }
+
+    .status-indicator::after {
+        content: "";
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+
+    .dark .status-indicator::after {
+        border: 2px solid hsl(var(--background));
+    }
+
+    .status-online::after {
+        background-color: #10b981; /* green-500 */
+        animation: pulse 2s infinite;
+    }
+
+    .status-warning::after {
+        background-color: #f59e0b; /* amber-500 */
+    }
+
+    .status-error::after {
+        background-color: #ef4444; /* red-500 */
+    }
+
+    /* Improved focus rings */
+    .focus-ring {
+        outline: none;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .focus-ring:focus-visible {
+        outline: 2px solid hsl(var(--ring));
+        outline-offset: 2px;
+    }
+
+    /* Isolated hover effects - these won't affect other elements */
+    .sidebar-hover-border:hover {
+        border-color: hsl(var(--sidebar-primary) / 0.3) !important;
+    }
+
+    .sidebar-hover-bg:hover {
+        background-color: hsl(var(--sidebar-primary) / 0.1) !important;
+    }
+
+    .dark .sidebar-hover-bg:hover {
+        background-color: hsl(var(--sidebar-primary) / 0.15) !important;
+    }
+
+    .sidebar-hover-text:hover {
+        color: hsl(var(--sidebar-primary)) !important;
+    }
+
+    .sidebar-hover-scale:hover {
+        transform: scale(1.1) !important;
+    }
 }
 
 /* Sidebar offset utility to keep sidebar aligned when page is centered */

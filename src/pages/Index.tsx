@@ -15,10 +15,12 @@ const Index = () => {
         feeds,
         articles,
         isInitialLoading,
+        isFetching,
         enabledFeeds,
         enabledCategories,
         handleToggleFeed,
         handleToggleCategory,
+        refetch,
     } = useFeedManager();
 
     // Encapsulated hook for managing filter state
@@ -98,7 +100,9 @@ const Index = () => {
                         searchQuery={searchQuery}
                         totalAvailable={totalAvailable}
                         isSearching={isSearching}
+                        isRefreshing={isFetching}
                         onSearch={handleSearch}
+                        onRefresh={refetch}
                     />
                     <main className="flex-1 p-6 pt-4 md:pt-6">
                         <ArticleGridInfinite

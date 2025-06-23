@@ -7,6 +7,8 @@ export function useFeedManager() {
         feeds: loadedFeeds,
         articles: loadedArticles,
         isInitialLoading,
+        isFetching,
+        refetch,
     } = useIncrementalFeeds();
 
     const [feeds, setFeeds] = useState<RSSFeed[]>([]);
@@ -20,44 +22,89 @@ export function useFeedManager() {
 
     const processedFeedIds = useRef(new Set<string>());
     const processedArticleIds = useRef(new Set<string>());
+    const isRefreshing = useRef(false);
 
     useEffect(() => {
-        const newFeeds = loadedFeeds.filter(
-            (f) => !processedFeedIds.current.has(f.id)
-        );
-        const newArticles = loadedArticles.filter(
-            (a) => !processedArticleIds.current.has(a.id)
-        );
+        if (isRefreshing.current) {
+            // During refresh: replace all data instead of incremental add
+            const allFeeds = loadedFeeds;
+            const allArticles = loadedArticles;
 
-        if (newFeeds.length > 0) {
-            newFeeds.forEach((f) => processedFeedIds.current.add(f.id));
-            setFeeds((prev) => [...prev, ...newFeeds]);
-            setEnabledFeeds((prev) => {
-                const updated = { ...prev };
-                newFeeds.forEach((f) => {
-                    if (!(f.id in updated)) updated[f.id] = true;
+            if (allFeeds.length > 0) {
+                allFeeds.forEach((f) => processedFeedIds.current.add(f.id));
+                setFeeds(allFeeds);
+                setEnabledFeeds((prev) => {
+                    const updated = { ...prev };
+                    allFeeds.forEach((f) => {
+                        if (!(f.id in updated)) updated[f.id] = true;
+                    });
+                    return updated;
                 });
-                return updated;
-            });
-            setEnabledCategories((prev) => {
-                const updated = { ...prev };
-                newFeeds.forEach((f) => {
-                    const cat = f.category ?? "Altele";
-                    if (!(cat in updated)) updated[cat] = true;
+                setEnabledCategories((prev) => {
+                    const updated = { ...prev };
+                    allFeeds.forEach((f) => {
+                        const cat = f.category ?? "Altele";
+                        if (!(cat in updated)) updated[cat] = true;
+                    });
+                    return updated;
                 });
-                return updated;
-            });
-        }
+            }
 
-        if (newArticles.length > 0) {
-            newArticles.forEach((a) => processedArticleIds.current.add(a.id));
-            setArticles((prev) =>
-                [...prev, ...newArticles].sort(
-                    (a, b) =>
-                        new Date(b.pubDate).getTime() -
-                        new Date(a.pubDate).getTime()
-                )
+            if (allArticles.length > 0) {
+                allArticles.forEach((a) =>
+                    processedArticleIds.current.add(a.id)
+                );
+                setArticles(
+                    allArticles.sort(
+                        (a, b) =>
+                            new Date(b.pubDate).getTime() -
+                            new Date(a.pubDate).getTime()
+                    )
+                );
+            }
+
+            isRefreshing.current = false;
+        } else {
+            // Normal operation: incremental loading
+            const newFeeds = loadedFeeds.filter(
+                (f) => !processedFeedIds.current.has(f.id)
             );
+            const newArticles = loadedArticles.filter(
+                (a) => !processedArticleIds.current.has(a.id)
+            );
+
+            if (newFeeds.length > 0) {
+                newFeeds.forEach((f) => processedFeedIds.current.add(f.id));
+                setFeeds((prev) => [...prev, ...newFeeds]);
+                setEnabledFeeds((prev) => {
+                    const updated = { ...prev };
+                    newFeeds.forEach((f) => {
+                        if (!(f.id in updated)) updated[f.id] = true;
+                    });
+                    return updated;
+                });
+                setEnabledCategories((prev) => {
+                    const updated = { ...prev };
+                    newFeeds.forEach((f) => {
+                        const cat = f.category ?? "Altele";
+                        if (!(cat in updated)) updated[cat] = true;
+                    });
+                    return updated;
+                });
+            }
+
+            if (newArticles.length > 0) {
+                newArticles.forEach((a) =>
+                    processedArticleIds.current.add(a.id)
+                );
+                setArticles((prev) =>
+                    [...prev, ...newArticles].sort(
+                        (a, b) =>
+                            new Date(b.pubDate).getTime() -
+                            new Date(a.pubDate).getTime()
+                    )
+                );
+            }
         }
     }, [loadedFeeds, loadedArticles]);
 
@@ -80,13 +127,27 @@ export function useFeedManager() {
         });
     };
 
+    const handleRefresh = async () => {
+        // Set refresh flag to change behavior in useEffect
+        isRefreshing.current = true;
+
+        // Clear processed IDs to allow fresh data
+        processedFeedIds.current.clear();
+        processedArticleIds.current.clear();
+
+        // Trigger the refetch - data will be handled differently due to isRefreshing flag
+        await refetch();
+    };
+
     return {
         feeds,
         articles,
         isInitialLoading,
+        isFetching,
         enabledFeeds,
         enabledCategories,
         handleToggleFeed,
         handleToggleCategory,
+        refetch: handleRefresh,
     };
 }

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SearchInput } from "@/components/SearchInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { RefreshButton } from "@/components/RefreshButton";
 import { Badge } from "@/components/ui/badge";
 import { RSSFeed } from "@/types/rss";
 
@@ -12,7 +13,9 @@ interface PageHeaderProps {
     searchQuery: string;
     totalAvailable: number;
     isSearching: boolean;
+    isRefreshing?: boolean;
     onSearch: (query: string) => void;
+    onRefresh: () => Promise<void>;
 }
 
 export function PageHeader({
@@ -22,7 +25,9 @@ export function PageHeader({
     searchQuery,
     totalAvailable,
     isSearching,
+    isRefreshing = false,
     onSearch,
+    onRefresh,
 }: PageHeaderProps) {
     const activeFilterName = useMemo(() => {
         if (selectedFeed) {
@@ -38,7 +43,13 @@ export function PageHeader({
                 <div className="flex-1">
                     <SearchInput onSearch={onSearch} isLoading={isSearching} />
                 </div>
-                <ThemeToggle />
+                <div className="flex items-center gap-2">
+                    <RefreshButton
+                        onRefresh={onRefresh}
+                        isRefreshing={isRefreshing}
+                    />
+                    <ThemeToggle />
+                </div>
             </div>
             <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
                 <h1 className="text-lg font-bold text-foreground md:text-2xl">
