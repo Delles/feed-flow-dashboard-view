@@ -51,7 +51,7 @@ export function PageHeader({
                     <ThemeToggle />
                 </div>
             </div>
-            <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col items-start gap-2 md:flex-row md:flex-nowrap md:items-center md:justify-between">
                 <h1 className="text-lg font-bold text-foreground md:text-2xl">
                     Știri
                 </h1>
@@ -67,7 +67,7 @@ export function PageHeader({
                             "{searchQuery}"
                         </Badge>
                     )}
-                    <span className="font-medium text-foreground/80 whitespace-nowrap">
+                    <span className="font-medium text-foreground/80 whitespace-nowrap text-right min-w-[6.5rem] tabular-nums">
                         {totalAvailable} articole
                     </span>
                 </div>
