@@ -113,7 +113,7 @@ export function ArticleGridInfinite({
                                     {Array.from({ length: 3 }).map((_, i) => (
                                         <div
                                             key={i}
-                                            className="space-y-3 h-[460px] flex flex-col"
+                                            className="space-y-3 h-[460px] flex flex-col overflow-hidden"
                                         >
                                             <Skeleton className="aspect-video w-full rounded-lg" />
                                             <div className="space-y-2 p-2 flex-grow">
@@ -131,7 +131,7 @@ export function ArticleGridInfinite({
                                     {Array.from({ length: 2 }).map((_, i) => (
                                         <div
                                             key={i}
-                                            className="bg-card rounded-lg border p-4 space-y-3 h-[460px] flex flex-col"
+                                            className="bg-card rounded-lg border p-4 space-y-3 h-[460px] flex flex-col overflow-hidden"
                                         >
                                             <Skeleton className="aspect-video w-full rounded-lg" />
                                             <div className="space-y-2">

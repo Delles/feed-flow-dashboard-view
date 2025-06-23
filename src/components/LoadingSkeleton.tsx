@@ -33,7 +33,7 @@ export function LoadingSkeleton() {
 
     // The shared skeleton for the content header, matching its final classes
     const HeaderSkeleton = () => (
-        <header className="sticky top-0 z-10 flex flex-col gap-2 px-4 py-2 bg-background/95 border-b backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6">
+        <header className="sticky top-0 z-10 flex flex-col gap-2 px-4 py-2 bg-background/95 border-b backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6 min-h-[96px]">
             <div className="flex items-center gap-4 h-12">
                 {isMobile && <Skeleton className="h-9 w-9" />}
                 <div className="flex-1">
@@ -88,8 +88,9 @@ export function LoadingSkeleton() {
                         <div className="flex flex-col flex-1 w-full max-w-6xl mx-4 md:mx-8">
                             <HeaderSkeleton />
                             <main className="flex-1 p-6 pt-4 md:pt-6">
+                                {/* Match the first data page (15 items) so height stays identical when skeletons swap out */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {Array.from({ length: 6 }).map((_, i) => (
+                                    {Array.from({ length: 15 }).map((_, i) => (
                                         <ArticleCardSkeleton key={i} />
                                     ))}
                                 </div>
@@ -102,8 +103,9 @@ export function LoadingSkeleton() {
                         <HeaderSkeleton />
                         {/* The main content area needs p-6 for side padding, and pt-4 to override top padding */}
                         <main className="flex-1 p-6 pt-4">
+                            {/* Mobile: show 9 placeholders (3 full viewport heights) */}
                             <div className="space-y-4">
-                                {Array.from({ length: 3 }).map((_, i) => (
+                                {Array.from({ length: 9 }).map((_, i) => (
                                     <ArticleCardSkeleton key={i} />
                                 ))}
                             </div>
