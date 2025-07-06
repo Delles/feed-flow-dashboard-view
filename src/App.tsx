@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 
 const queryClient = new QueryClient();
 
@@ -26,9 +27,7 @@ const App = () => (
                 </Suspense>
 
                 <BrowserRouter>
-                    <Suspense
-                        fallback={<div className="p-4">Se încarcă...</div>}
-                    >
+                    <Suspense fallback={<LoadingSkeleton />}>
                         <Routes>
                             <Route path="/" element={<Index />} />
                             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
