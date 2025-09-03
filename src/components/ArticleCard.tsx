@@ -127,7 +127,7 @@ export function ArticleCard({
                         <img
                             src={src}
                             srcSet={srcSet}
-                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 350px, 384px"
+                            sizes="(max-width: 768px) 100vw, 384px"
                             alt={article.title}
                             className={`w-full h-full object-cover transition-opacity duration-300 absolute inset-0 ${
                                 imageLoaded ? "opacity-100" : "opacity-0"

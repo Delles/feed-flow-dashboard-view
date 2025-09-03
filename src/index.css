@@ -337,3 +337,16 @@ body::-webkit-scrollbar {
         }
     }
 }
+
+/* Critical mobile-first styles - inline these */
+@media (max-width: 767px) {
+    .article-card {
+        height: auto !important;
+        min-height: 300px;
+    }
+
+    .aspect-video {
+        aspect-ratio: 16/9;
+        height: auto;
+    }
+}

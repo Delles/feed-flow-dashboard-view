@@ -103,9 +103,9 @@ export function LoadingSkeleton() {
                         <HeaderSkeleton />
                         {/* The main content area needs p-6 for side padding, and pt-4 to override top padding */}
                         <main className="flex-1 p-6 pt-4">
-                            {/* Mobile: show 9 placeholders (3 full viewport heights) */}
+                            {/* Mobile: show 3 placeholders (1 viewport height) */}
                             <div className="space-y-4">
-                                {Array.from({ length: 9 }).map((_, i) => (
+                                {Array.from({ length: 3 }).map((_, i) => (
                                     <ArticleCardSkeleton key={i} />
                                 ))}
                             </div>

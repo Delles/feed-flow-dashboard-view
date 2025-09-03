@@ -40,9 +40,15 @@ export default defineConfig(({ mode }) => ({
                         if (id.includes("@tanstack")) return "tanstack";
                         if (id.includes("@radix-ui")) return "radix";
                         if (id.includes("lucide-react")) return "lucide";
+                        // Split large UI libraries for mobile
+                        if (id.includes("sonner") || id.includes("vaul"))
+                            return "ui-mobile";
                     }
                 },
             },
         },
+        // Add mobile-specific optimizations
+        target: ["es2020", "chrome80", "safari13"],
+        chunkSizeWarningLimit: 1000,
     },
 }));
