@@ -101,6 +101,23 @@ export function ArticleCard({
               )} 512w, ${getOptimisedImage(article.image, 768, 80)} 768w`
             : undefined;
 
+    // Preload the first visible image to improve LCP on mobile
+    useEffect(() => {
+        if (!isFirst || !src) return;
+        const link = document.createElement("link");
+        link.rel = "preload";
+        link.as = "image";
+        link.href = src;
+        if (srcSet) {
+            link.setAttribute("imagesrcset", srcSet);
+            link.setAttribute("imagesizes", "(max-width: 640px) 92vw, 384px");
+        }
+        document.head.appendChild(link);
+        return () => {
+            document.head.removeChild(link);
+        };
+    }, [isFirst, src, srcSet]);
+
     const openArticle = () => window.open(article.url, "_blank");
 
     return (
@@ -113,6 +130,7 @@ export function ArticleCard({
                 if (e.key === "Enter") openArticle();
             }}
             className="flex flex-col h-[460px] overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            style={{ contentVisibility: "auto", containIntrinsicSize: "460px" }}
         >
             {article.image ? (
                 <div

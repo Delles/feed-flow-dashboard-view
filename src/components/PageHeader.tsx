@@ -37,7 +37,10 @@ export function PageHeader({
     }, [feeds, selectedFeed, selectedCategory]);
 
     return (
-        <header className="sticky top-0 z-10 flex flex-col gap-2 px-4 py-2 bg-background/95 border-b backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6 min-h-[96px]">
+        <header
+            className="sticky top-0 z-10 flex flex-col gap-2 px-4 py-2 bg-background/95 border-b backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6 min-h-[96px]"
+            style={{ containIntrinsicSize: "96px", contentVisibility: "auto" }}
+        >
             <div className="flex items-center gap-4 h-12">
                 <SidebarTrigger className="lg:hidden" />
                 <div className="flex-1">

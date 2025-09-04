@@ -74,7 +74,13 @@ export function ArticleGridInfinite({
     }
 
     return (
-        <div className="space-y-6">
+        <div
+            className="space-y-6"
+            style={{
+                containIntrinsicSize: "1px 1px",
+                contentVisibility: "auto",
+            }}
+        >
             {/* Articles Grid */}
             {!isMobile ? (
                 // Desktop layout - grid
