@@ -1,10 +1,11 @@
 import { useMemo } from "react";
-import { ChevronDown, Eye, EyeOff, Rss } from "lucide-react";
+import { ChevronDown, Eye, EyeOff, Rss, FolderOpen, Folder } from "lucide-react";
 import {
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { RSSFeed, Article } from "@/types/rss";
 import { FeedListItem } from "./FeedListItem";
 
@@ -78,7 +79,7 @@ export function CategoryAccordion({
                             onSelectCategory(category);
                         }
                     }}
-                    className={`text-sm font-bold text-foreground uppercase tracking-wider flex-1 text-left transition-all duration-300 px-4 py-3 rounded-2xl floating-card scale-hover focus-ring ${
+                    className={`text-sm font-semibold text-foreground flex-1 text-left transition-all duration-300 px-4 py-3 rounded-2xl floating-card scale-hover focus-ring ${
                         !isCategoryEnabled
                             ? "cursor-not-allowed opacity-40"
                             : "cursor-pointer"
@@ -154,10 +155,10 @@ export function CategoryAccordion({
                     </button>
                 </div>
             </div>
-            <AccordionTrigger className="px-4 py-2 hover:no-underline text-sm text-muted-foreground rounded-xl sidebar-hover-bg transition-all duration-300">
+            <AccordionTrigger className="px-4 py-2 hover:no-underline text-sm text-muted-foreground rounded-xl sidebar-hover-bg transition-all duration-300 focus-ring">
                 <div className="flex items-center gap-2">
                     <span className="font-medium sidebar-hover-text transition-colors duration-300">
-                        Afișează fluxuri
+                        Afișează surse ({feeds.length})
                     </span>
                     <div className="w-1.5 h-1.5 bg-sidebar-primary rounded-full animate-pulse"></div>
                 </div>

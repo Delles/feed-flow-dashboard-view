@@ -4,13 +4,31 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/use-debounce";
 
+/**
+ * Props for the SearchInput component
+ */
 interface SearchInputProps {
+    /** Callback function called when user searches */
     onSearch: (query: string) => void;
+    /** Placeholder text for the search input */
     placeholder?: string;
+    /** Debounce delay in milliseconds (default: 300) */
     debounceDelay?: number;
+    /** Whether to show loading spinner */
     isLoading?: boolean;
 }
 
+/**
+ * Search input component with debounced search and keyboard shortcuts.
+ *
+ * Features:
+ * - Debounced search with configurable delay
+ * - Cmd/Ctrl+K keyboard shortcut to focus
+ * - Loading state with spinner
+ * - Clear button when text is present
+ * - Keyboard shortcut indicator
+ * - Responsive design
+ */
 export function SearchInput({
     onSearch,
     placeholder = "Caută articole…",

@@ -5,52 +5,60 @@ import {
     CardHeader,
 } from "@/components/ui/card";
 import { Article, RSSFeed } from "@/types/rss";
-import { Rss, Clock } from "lucide-react";
+import { Rss, Clock, ExternalLink } from "lucide-react";
 import { getOptimisedImage } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
+/**
+ * Props for the ArticleCard component
+ */
 interface ArticleCardProps {
+    /** Article data to display */
     article: Article;
+    /** Array of RSS feeds for metadata lookup */
     feeds: RSSFeed[];
-    /**
-     * When the card is the very first visible item on the page we mark its image
-     * as high-priority so that the browser schedules the request earlier. */
+    /** Whether this is the first article (for image priority) */
     isFirst?: boolean;
 }
 
+/**
+ * Converts a date to a relative time string (e.g., "acum 2 ore")
+ */
 function timeSince(date: Date): string {
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    let interval = seconds / 31536000;
-    if (interval >= 1) {
-        return `acum ${Math.floor(interval)} ${
-            Math.floor(interval) === 1 ? "an" : "ani"
-        }`;
+
+    const intervals = [
+        { divisor: 31536000, singular: "an", plural: "ani" },
+        { divisor: 2592000, singular: "lună", plural: "luni" },
+        { divisor: 86400, singular: "zi", plural: "zile" },
+        { divisor: 3600, singular: "oră", plural: "ore" },
+        { divisor: 60, singular: "minut", plural: "minute" },
+    ];
+
+    for (const { divisor, singular, plural } of intervals) {
+        const interval = seconds / divisor;
+        if (interval >= 1) {
+            const count = Math.floor(interval);
+            return `acum ${count} ${count === 1 ? singular : plural}`;
+        }
     }
-    interval = seconds / 2592000;
-    if (interval >= 1) {
-        return `acum ${Math.floor(interval)} luni`;
-    }
-    interval = seconds / 86400;
-    if (interval >= 1) {
-        return `acum ${Math.floor(interval)} ${
-            Math.floor(interval) === 1 ? "zi" : "zile"
-        }`;
-    }
-    interval = seconds / 3600;
-    if (interval >= 1) {
-        return `acum ${Math.floor(interval)} ${
-            Math.floor(interval) === 1 ? "oră" : "ore"
-        }`;
-    }
-    interval = seconds / 60;
-    if (interval >= 1) {
-        return `acum ${Math.floor(interval)} ${
-            Math.floor(interval) === 1 ? "minut" : "minute"
-        }`;
-    }
+
     return "chiar acum";
 }
 
+/**
+ * Article card component displaying article content with image, metadata, and interactive elements.
+ *
+ * Features:
+ * - Responsive image with lazy loading and fallbacks
+ * - Feed metadata with avatar and category badges
+ * - Hover effects and external link indicators
+ * - Accessible keyboard navigation
+ * - Optimized image loading for performance
+ */
 export function ArticleCard({
     article,
     feeds,
@@ -122,24 +130,21 @@ export function ArticleCard({
 
     return (
         <Card
-            aria-label={`${feed?.title ?? "Articol"}: ${article.title}`}
-            role="link"
-            tabIndex={0}
-            onClick={openArticle}
-            onKeyDown={(e) => {
-                if (e.key === "Enter") openArticle();
-            }}
-            className="flex flex-col h-[460px] overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="group flex flex-col h-[460px] overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out cursor-pointer border-border/50 hover:border-primary/20"
             style={{ contentVisibility: "auto", containIntrinsicSize: "460px" }}
+            onClick={openArticle}
         >
-            {article.image ? (
+            <AspectRatio ratio={16 / 9} className="bg-muted/30">
                 <div
-                    className="aspect-video overflow-hidden relative"
+                    className="w-full h-full overflow-hidden relative"
                     ref={imgRef}
                 >
                     {/* Always show placeholder first to prevent layout shift */}
-                    <div className="w-full h-full bg-muted/30 flex items-center justify-center absolute inset-0">
-                        <Rss className="w-8 h-8 text-muted-foreground/50" />
+                    <div className="w-full h-full bg-gradient-to-br from-muted/20 to-muted/40 flex items-center justify-center absolute inset-0">
+                        <div className="flex flex-col items-center gap-2">
+                            <Rss className="w-8 h-8 text-muted-foreground/50" />
+                            <div className="w-16 h-1 bg-muted-foreground/20 rounded-full animate-pulse"></div>
+                        </div>
                     </div>
                     {isVisible && (
                         <img
@@ -147,8 +152,8 @@ export function ArticleCard({
                             srcSet={srcSet}
                             sizes="(max-width: 640px) 92vw, 384px"
                             alt={article.title}
-                            className={`w-full h-full object-cover transition-opacity duration-300 absolute inset-0 ${
-                                imageLoaded ? "opacity-100" : "opacity-0"
+                            className={`w-full h-full object-cover transition-all duration-500 absolute inset-0 ${
+                                imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"
                             }`}
                             loading={isFirst ? "eager" : "lazy"}
                             fetchPriority={isFirst ? "high" : "auto"}
@@ -165,41 +170,45 @@ export function ArticleCard({
                             }}
                         />
                     )}
-                </div>
-            ) : (
-                <div className="aspect-video bg-muted/50 flex items-center justify-center">
-                    <Rss className="w-12 h-12 text-muted-foreground" />
-                </div>
-            )}
-            <CardHeader className="p-4">
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1.5">
-                        {feed?.favicon &&
-                            (feed.favicon.startsWith("http") ? (
-                                <img
-                                    src={feed.favicon}
-                                    alt={`${feed.title} favicon`}
-                                    className="w-4 h-4 flex-shrink-0"
-                                    width={16}
-                                    height={16}
-                                    loading="lazy"
-                                    decoding="async"
-                                />
-                            ) : (
-                                <span className="text-base leading-none w-4 h-4 flex-shrink-0 flex items-center justify-center">
-                                    {feed.favicon}
-                                </span>
-                            ))}
-                        <span className="font-medium text-foreground/90">
-                            {feed?.title ?? "Sursă necunoscută"}
-                        </span>
+
+                    {/* Overlay with external link indicator */}
+                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="bg-background/80 backdrop-blur-sm rounded-full p-2 border shadow-lg">
+                            <ExternalLink className="w-4 h-4 text-foreground" />
+                        </div>
                     </div>
-                    <span className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5" />
-                        {timeSince(new Date(article.pubDate))}
-                    </span>
                 </div>
-                <h3 className="font-bold text-lg leading-tight mt-2 text-card-foreground line-clamp-2">
+            </AspectRatio>
+            <CardHeader className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Avatar className="w-8 h-8">
+                            <AvatarImage
+                                src={feed?.favicon}
+                                alt={`${feed?.title} favicon`}
+                                className="object-cover"
+                            />
+                            <AvatarFallback className="text-xs">
+                                {feed?.favicon || <Rss className="w-4 h-4" />}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                            <span className="font-semibold text-sm text-foreground">
+                                {feed?.title ?? "Sursă necunoscută"}
+                            </span>
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Clock className="w-3 h-3" />
+                                {timeSince(new Date(article.pubDate))}
+                            </div>
+                        </div>
+                    </div>
+                    {feed?.category && (
+                        <Badge variant="secondary" className="text-xs">
+                            {feed.category}
+                        </Badge>
+                    )}
+                </div>
+                <h3 className="font-bold text-lg leading-tight text-card-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
                     {article.title}
                 </h3>
             </CardHeader>

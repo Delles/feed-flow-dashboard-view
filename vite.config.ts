@@ -26,29 +26,70 @@ export default defineConfig(({ mode }) => ({
         },
     },
 
-    // Split large third-party dependencies into their own chunks so that
-    // the initial bundle stays small and the browser can cache vendors.
+    // Enhanced build optimizations for better performance and caching
     build: {
-        cssMinify: true,
-        minify: "esbuild", // Use esbuild (default) - faster and doesn't require extra deps
+        cssMinify: "esbuild",
+        cssCodeSplit: true,
+        minify: "esbuild",
+        sourcemap: false, // Disable for smaller bundles
+        target: "esnext", // Modern browsers for smaller bundles
+
         rollupOptions: {
             output: {
+                // Enhanced chunk splitting for better caching
                 manualChunks(id) {
                     if (id.includes("node_modules")) {
-                        if (/react|react-dom|scheduler/.test(id))
+                        if (/react|react-dom|scheduler|react-router-dom/.test(id))
                             return "react-vendor";
                         if (id.includes("@tanstack")) return "tanstack";
                         if (id.includes("@radix-ui")) return "radix";
                         if (id.includes("lucide-react")) return "lucide";
-                        // Split large UI libraries for mobile
-                        if (id.includes("sonner") || id.includes("vaul"))
+                        // UI libraries for mobile optimization
+                        if (id.includes("sonner") || id.includes("vaul") || id.includes("input-otp"))
                             return "ui-mobile";
+                        // Form libraries
+                        if (id.includes("react-hook-form") || id.includes("@hookform"))
+                            return "forms";
+                        // Utility libraries
+                        if (id.includes("clsx") || id.includes("tailwind-merge"))
+                            return "utils";
+                    }
+
+                    // Application feature chunks
+                    if (id.includes("/components/")) {
+                        if (id.includes("Article")) return "articles";
+                        if (id.includes("sidebar") || id.includes("Sidebar")) return "sidebar";
+                        if (id.includes("ui/")) return "ui-components";
                     }
                 },
+
+                // Better naming for debugging
+                chunkFileNames: "assets/[name]-[hash].js",
+                entryFileNames: "assets/[name]-[hash].js",
+                assetFileNames: "assets/[name]-[hash].[ext]",
             },
         },
-        // Add mobile-specific optimizations
-        target: ["es2020", "chrome80", "safari13"],
+
+        // Performance optimizations
         chunkSizeWarningLimit: 1000,
+
+        // Dependency optimization
+        commonjsOptions: {
+            include: [/node_modules/],
+        },
+    },
+
+    // Optimize dependencies
+    optimizeDeps: {
+        include: [
+            "react",
+            "react-dom",
+            "react-router-dom",
+            "@tanstack/react-query",
+            "lucide-react",
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+        ],
+        exclude: ["@vite/client", "@vite/env"],
     },
 }));

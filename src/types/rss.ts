@@ -6,6 +6,7 @@ export interface RSSFeed {
     favicon?: string;
     lastUpdated?: Date;
     category?: string;
+    errorCount?: number;
 }
 
 export interface Article {

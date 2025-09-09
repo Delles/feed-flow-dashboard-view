@@ -1,23 +1,58 @@
 import { useMemo } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { SearchInput } from "@/components/SearchInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { RefreshButton } from "@/components/RefreshButton";
 import { Badge } from "@/components/ui/badge";
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator
+} from "@/components/ui/breadcrumb";
+import { SearchInput } from "@/components/SearchInput";
 import { RSSFeed } from "@/types/rss";
 
+/**
+ * Props for the PageHeader component
+ */
 interface PageHeaderProps {
+    /** Array of RSS feeds for navigation and breadcrumbs */
     feeds: RSSFeed[];
+    /** Currently selected feed ID */
     selectedFeed: string | null;
+    /** Currently selected category */
     selectedCategory: string | null;
+    /** Current search query */
     searchQuery: string;
+    /** Total number of available articles */
     totalAvailable: number;
+    /** Whether search is in progress */
     isSearching: boolean;
+    /** Whether articles are being refreshed */
     isRefreshing?: boolean;
+    /** Callback for search */
     onSearch: (query: string) => void;
+    /** Callback to refresh articles */
     onRefresh: () => Promise<void>;
+    /** Callback when a feed is selected */
+    onSelectFeed: (feedId: string | null) => void;
+    /** Callback when a category is selected */
+    onSelectCategory: (category: string | null) => void;
+    /** Optional callback to add a new feed */
+    onAddFeed?: () => void;
 }
 
+/**
+ * Page header component with navigation, search, and actions.
+ *
+ * Features:
+ * - Breadcrumb navigation for current selection
+ * - Search input with Cmd/Ctrl+K shortcut
+ * - Article stats and count display
+ * - Responsive design with mobile optimizations
+ */
 export function PageHeader({
     feeds,
     selectedFeed,
@@ -28,12 +63,45 @@ export function PageHeader({
     isRefreshing = false,
     onSearch,
     onRefresh,
+    onSelectFeed,
+    onSelectCategory,
+    onAddFeed,
 }: PageHeaderProps) {
+
+    // Determine active filter name for display
     const activeFilterName = useMemo(() => {
         if (selectedFeed) {
             return feeds.find((f) => f.id === selectedFeed)?.title || "Filtru";
         }
         return selectedCategory || "Toate articolele";
+    }, [feeds, selectedFeed, selectedCategory]);
+
+    // Generate breadcrumb items
+    const breadcrumbItems = useMemo(() => {
+        const items = [
+            { label: "Știri", href: "/", isActive: !selectedFeed && !selectedCategory }
+        ];
+
+        if (selectedCategory) {
+            items.push({
+                label: selectedCategory,
+                href: "#",
+                isActive: !selectedFeed
+            });
+        }
+
+        if (selectedFeed) {
+            const feed = feeds.find(f => f.id === selectedFeed);
+            if (feed) {
+                items.push({
+                    label: feed.title,
+                    href: "#",
+                    isActive: true
+                });
+            }
+        }
+
+        return items;
     }, [feeds, selectedFeed, selectedCategory]);
 
     return (
@@ -42,9 +110,16 @@ export function PageHeader({
             style={{ containIntrinsicSize: "96px", contentVisibility: "auto" }}
         >
             <div className="flex items-center gap-4 h-12">
-                <SidebarTrigger className="lg:hidden" />
+                <SidebarTrigger
+                    className="lg:hidden"
+                    aria-label="Toggle navigation sidebar"
+                />
                 <div className="flex-1">
-                    <SearchInput onSearch={onSearch} isLoading={isSearching} />
+                    <SearchInput
+                        onSearch={onSearch}
+                        placeholder="Caută articole..."
+                        isLoading={isSearching}
+                    />
                 </div>
                 <div className="flex items-center gap-2">
                     <RefreshButton
@@ -55,14 +130,30 @@ export function PageHeader({
                 </div>
             </div>
             <div className="flex flex-col items-start gap-2 md:flex-row md:flex-nowrap md:items-center md:justify-between">
-                <h1 className="text-lg font-bold text-foreground md:text-2xl">
-                    Știri
-                </h1>
+                <nav className="hidden md:block" aria-label="Breadcrumb navigation">
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            {breadcrumbItems.map((item, index) => (
+                                <div key={item.label} className="flex items-center">
+                                    {index > 0 && <BreadcrumbSeparator />}
+                                    <BreadcrumbItem>
+                                        {item.isActive ? (
+                                            <BreadcrumbPage className="font-semibold">
+                                                {item.label}
+                                            </BreadcrumbPage>
+                                        ) : (
+                                            <BreadcrumbLink href={item.href} className="hover:text-foreground">
+                                                {item.label}
+                                            </BreadcrumbLink>
+                                        )}
+                                    </BreadcrumbItem>
+                                </div>
+                            ))}
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </nav>
                 <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-muted-foreground">
-                    <Badge
-                        variant="outline"
-                        className="border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-400 font-semibold"
-                    >
+                    <Badge variant="outline" className="border-primary/50 bg-primary/10 text-primary font-semibold">
                         {activeFilterName}
                     </Badge>
                     {searchQuery && (
@@ -78,3 +169,4 @@ export function PageHeader({
         </header>
     );
 }
+

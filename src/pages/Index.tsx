@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { ArticleGridInfinite } from "@/components/ArticleGridInfinite";
+import { ArticleGrid } from "@/components/ArticleGrid";
 import { ChevronUp } from "lucide-react";
 import { useInfiniteArticles } from "@/hooks/useInfiniteArticles";
 import { PageHeader } from "@/components/PageHeader";
@@ -9,8 +9,19 @@ import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { useFeedManager } from "@/hooks/useFeedManager";
 import { useFilters } from "@/hooks/useFilters";
 
+/**
+ * Main page component for the RSS feed dashboard.
+ *
+ * This component orchestrates the entire application by:
+ * - Managing RSS feed data and filtering state
+ * - Handling infinite scrolling and search functionality
+ * - Providing responsive layout with sidebar and main content
+ * - Implementing scroll-to-top functionality for mobile
+ * - Enhanced error handling and network-aware data fetching
+ */
 const Index = () => {
-    // Encapsulated hook for managing feed data and loading state
+    // ===== DATA MANAGEMENT =====
+    // Encapsulated hook for managing RSS feed data and loading states
     const {
         feeds,
         articles,
@@ -23,7 +34,8 @@ const Index = () => {
         refetch,
     } = useFeedManager();
 
-    // Encapsulated hook for managing filter state
+    // ===== FILTER STATE MANAGEMENT =====
+    // Encapsulated hook for managing user filter selections
     const {
         selectedFeed,
         selectedCategory,
@@ -33,7 +45,9 @@ const Index = () => {
         handleSearch,
     } = useFilters();
 
-    // Infinite scroll hook remains, but now gets cleaner props
+
+    // ===== INFINITE SCROLL MANAGEMENT =====
+    // Hook for managing article display with infinite scrolling
     const {
         displayedArticles,
         hasMore,
@@ -52,21 +66,24 @@ const Index = () => {
         enabledCategories,
     });
 
-    // UI state for scroll-to-top button
+    // ===== UI STATE =====
+    // State for mobile scroll-to-top button visibility
     const [showScrollTop, setShowScrollTop] = useState(false);
 
-    // Reset infinite scroll when filters change
+    // ===== EFFECTS =====
+    // Reset infinite scroll when filter criteria change
     useEffect(() => {
         reset();
     }, [searchQuery, selectedFeed, selectedCategory, reset]);
 
-    // Effect for showing the scroll-to-top button
+    // Handle scroll-to-top button visibility
     useEffect(() => {
         const onScroll = () => setShowScrollTop(window.scrollY > 400);
         window.addEventListener("scroll", onScroll);
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
+    // ===== UTILITY FUNCTIONS =====
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
@@ -75,9 +92,12 @@ const Index = () => {
         return <LoadingSkeleton />;
     }
 
+    // ===== RENDER =====
     return (
         <SidebarProvider>
             <div className="min-h-screen flex w-full bg-background justify-center">
+                {/* ===== SIDEBAR ===== */}
+                {/* Navigation and filter controls */}
                 <AppSidebar
                     feeds={feeds}
                     articles={articles}
@@ -92,7 +112,11 @@ const Index = () => {
                     onToggleFeed={handleToggleFeed}
                     onToggleCategory={handleToggleCategory}
                 />
+
+                {/* ===== MAIN CONTENT ===== */}
                 <div className="flex flex-col flex-1 w-full max-w-6xl mx-4 md:mx-8">
+                    {/* ===== HEADER ===== */}
+                    {/* Search, navigation, and action buttons */}
                     <PageHeader
                         feeds={feeds}
                         selectedFeed={selectedFeed}
@@ -103,9 +127,15 @@ const Index = () => {
                         isRefreshing={isFetching}
                         onSearch={handleSearch}
                         onRefresh={refetch}
+                        onSelectFeed={handleSelectFeed}
+                        onSelectCategory={handleSelectCategory}
+                        onAddFeed={() => {}} // Placeholder, not implemented
                     />
+
+                    {/* ===== ARTICLE GRID ===== */}
+                    {/* Main content area with infinite scrolling */}
                     <main className="flex-1 p-6 pt-4 md:pt-6">
-                        <ArticleGridInfinite
+                        <ArticleGrid
                             articles={displayedArticles}
                             feeds={feeds}
                             hasMore={hasMore}
@@ -114,6 +144,9 @@ const Index = () => {
                             totalAvailable={totalAvailable}
                         />
                     </main>
+
+                    {/* ===== SCROLL TO TOP BUTTON ===== */}
+                    {/* Mobile-only floating action button */}
                     {showScrollTop && (
                         <button
                             onClick={scrollToTop}

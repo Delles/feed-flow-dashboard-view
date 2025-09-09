@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS Dashboard - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #334155;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+        }
+
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            opacity: 0.6;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1e293b;
+        }
+
+        .message {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            color: #64748b;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover {
+            background: #2563eb;
+        }
+
+        .features {
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .features h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .features li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9"/>
+        </svg>
+
+        <h1 class="title">Offline Mode</h1>
+
+        <p class="message">
+            Se pare că ești offline momentan. Nu îți face griji - poți continua să citești articolele salvate și să navighezi prin aplicație.
+        </p>
+
+        <a href="/" class="button">Încearcă din nou</a>
+
+        <div class="features">
+            <h3>Ce poți face offline:</h3>
+            <ul>
+                <li>✅ Citește articolele încărcate anterior</li>
+                <li>✅ Navighează prin categoriile existente</li>
+                <li>✅ Caută în articolele salvate</li>
+                <li>✅ Schimbă tema (luminoasă/întunecată)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Try to reload the page when connection is restored
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+
+        // Show connection status
+        function updateConnectionStatus() {
+            const isOnline = navigator.onLine;
+            document.body.style.background = isOnline ? '#f0fdf4' : '#fef2f2';
+        }
+
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        updateConnectionStatus();
+    </script>
+</body>
+</html>
