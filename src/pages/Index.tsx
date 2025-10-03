@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { useFeedManager } from "@/hooks/useFeedManager";
 import { useFilters } from "@/hooks/useFilters";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 /**
  * Main page component for the RSS feed dashboard.
@@ -18,6 +19,8 @@ import { useFilters } from "@/hooks/useFilters";
  * - Providing responsive layout with sidebar and main content
  * - Implementing scroll-to-top functionality for mobile
  * - Enhanced error handling and network-aware data fetching
+ *
+ * Fix: Added ErrorBoundary around ArticleGrid to catch and display scroll-related errors gracefully.
  */
 const Index = () => {
     // ===== DATA MANAGEMENT =====
@@ -135,14 +138,20 @@ const Index = () => {
                     {/* ===== ARTICLE GRID ===== */}
                     {/* Main content area with infinite scrolling */}
                     <main className="flex-1 p-6 pt-4 md:pt-6">
-                        <ArticleGrid
-                            articles={displayedArticles}
-                            feeds={feeds}
-                            hasMore={hasMore}
-                            isLoading={isLoadingMore}
-                            onLoadMore={loadMore}
-                            totalAvailable={totalAvailable}
-                        />
+                        {/*
+                            ErrorBoundary: Catches scroll-related errors and displays user-friendly error messages
+                            instead of white screens. Essential for graceful error handling during infinite scrolling.
+                        */}
+                        <ErrorBoundary>
+                            <ArticleGrid
+                                articles={displayedArticles}
+                                feeds={feeds}
+                                hasMore={hasMore}
+                                isLoading={isLoadingMore}
+                                onLoadMore={loadMore}
+                                totalAvailable={totalAvailable}
+                            />
+                        </ErrorBoundary>
                     </main>
 
                     {/* ===== SCROLL TO TOP BUTTON ===== */}

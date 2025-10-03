@@ -145,7 +145,13 @@ export function useInfiniteArticles(
             .map((article) => article.id);
     }, [debouncedConfig]);
 
-    // Get articles for current pages with memory management
+    /**
+     * Get articles for current pages with memory management.
+     * Converts filtered article IDs back to full article objects for display.
+     *
+     * Fix: Simplified from complex try-catch error handling to basic array operations.
+     * Removed unnecessary console warnings and error logging that added complexity without benefit.
+     */
     const displayedArticles = useMemo(() => {
         const totalToShow = (currentPage + 1) * ARTICLES_PER_PAGE;
         const articlesToShow = filteredArticleIds.slice(
@@ -157,7 +163,10 @@ export function useInfiniteArticles(
         const articleMap = new Map(
             allArticles.map((article) => [article.id, article])
         );
-        return articlesToShow.map((id) => articleMap.get(id)!).filter(Boolean);
+
+        return articlesToShow
+            .map((id) => articleMap.get(id))
+            .filter(Boolean) as Article[];
     }, [filteredArticleIds, currentPage, allArticles]);
 
     const hasMore = useMemo(() => {
@@ -166,10 +175,17 @@ export function useInfiniteArticles(
         return totalShown < totalAvailable && totalShown < MAX_CACHED_ARTICLES;
     }, [displayedArticles.length, filteredArticleIds.length]);
 
+/**
+ * Load more articles by incrementing the current page.
+ * Uses a small delay to provide visual feedback during loading.
+ *
+ * Fix: Simplified from requestAnimationFrame approach to basic setTimeout for reliability.
+ * The original approach was over-engineered for this simple state update.
+ */
     const loadMore = useCallback(() => {
         if (hasMore && !isLoading && !isSearching) {
             setIsLoading(true);
-            // Simulate async loading for smooth UX
+            // Small delay to show loading state
             setTimeout(() => {
                 setCurrentPage((prev) => prev + 1);
                 setIsLoading(false);

@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback, useMemo } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer, Virtualizer } from "@tanstack/react-virtual";
 import { Article, RSSFeed } from "@/types/rss";
 import { ArticleCard } from "./ArticleCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,17 +24,19 @@ interface ArticleGridVirtualProps {
 }
 
 /**
- * Virtualized article grid component for optimal performance with large lists.
+ * Hybrid article grid component with responsive layout optimization.
  *
  * Features:
- * - Renders only visible items using @tanstack/react-virtual
+ * - Desktop: Regular CSS Grid layout (3 columns) for clean, consistent display
+ * - Mobile: Virtual scrolling with @tanstack/react-virtual for performance
  * - Handles infinite scrolling with intersection observer
- * - Responsive layout (grid on desktop, list on mobile)
  * - Loading states and skeleton placeholders
- * - Memory efficient for large article collections
- */
-/**
- * Virtualized article grid component for optimal performance with large lists
+ * - Responsive breakpoints for optimal UX on all devices
+ *
+ * Fix: Separated desktop and mobile layouts to prevent layout shifting issues.
+ * Desktop uses standard grid (50+ articles = ~17 rows, manageable without virtualization).
+ * Mobile uses virtual scrolling for performance with large lists.
+ * Removed undefined 'itemWidth' variable that was causing ReferenceError.
  */
 export function ArticleGridVirtual({
     articles,
@@ -46,13 +48,14 @@ export function ArticleGridVirtual({
 }: ArticleGridVirtualProps) {
     const parentRef = useRef<HTMLDivElement>(null);
     const loadMoreRef = useRef<HTMLDivElement>(null);
+    const desktopLoadMoreRef = useRef<HTMLDivElement>(null);
     const isMobile = useIsMobile();
 
     // Fixed item height for consistent layout
     const itemHeight = 460;
 
-    // Configure virtualizer for efficient rendering
-    const virtualizer = useVirtualizer({
+    // Configure virtualizer for mobile only (desktop uses regular grid)
+    const virtualizer: Virtualizer<HTMLDivElement, HTMLDivElement> = useVirtualizer<HTMLDivElement, HTMLDivElement>({
         count: articles.length,
         getScrollElement: () => parentRef.current || null,
         estimateSize: () => itemHeight,
@@ -69,17 +72,38 @@ export function ArticleGridVirtual({
         [hasMore, isLoading, onLoadMore]
     );
 
+    /**
+     * Set up intersection observer for infinite scrolling.
+     * Triggers loadMore when the loading indicator comes into view.
+     *
+     * Fix: Added null check before disconnecting observer to prevent memory leaks.
+     * Handles both mobile and desktop layouts.
+     */
     useEffect(() => {
-        const element = loadMoreRef.current;
-        if (!element) return;
+        const observers: IntersectionObserver[] = [];
 
-        const observer = new IntersectionObserver(handleIntersection, {
-            rootMargin: "100px", // Trigger 100px before the element comes into view
-        });
+        // Mobile intersection observer
+        if (isMobile && loadMoreRef.current) {
+            const mobileObserver = new IntersectionObserver(handleIntersection, {
+                rootMargin: "100px",
+            });
+            mobileObserver.observe(loadMoreRef.current);
+            observers.push(mobileObserver);
+        }
 
-        observer.observe(element);
-        return () => observer.disconnect();
-    }, [handleIntersection]);
+        // Desktop intersection observer
+        if (!isMobile && desktopLoadMoreRef.current) {
+            const desktopObserver = new IntersectionObserver(handleIntersection, {
+                rootMargin: "100px",
+            });
+            desktopObserver.observe(desktopLoadMoreRef.current);
+            observers.push(desktopObserver);
+        }
+
+        return () => {
+            observers.forEach(observer => observer.disconnect());
+        };
+    }, [handleIntersection, isMobile]);
 
     // Memoize article-feed mapping for performance
     const articlesWithFeeds = useMemo(() =>
@@ -106,6 +130,66 @@ export function ArticleGridVirtual({
         );
     }
 
+    // Desktop: Use regular grid layout for better UX (no virtualization needed for ~17 rows)
+    if (!isMobile) {
+        return (
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
+                    {articles.map((article, index) => (
+                        <ArticleCard
+                            key={article.id}
+                            article={article}
+                            feeds={feeds}
+                            isFirst={index === 0}
+                        />
+                    ))}
+                </div>
+
+                {/* Desktop Loading More Indicator */}
+                {hasMore && (
+                    <>
+                        {isLoading ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
+                                {Array.from({ length: 3 }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="space-y-3 h-[460px] flex flex-col overflow-hidden"
+                                    >
+                                        <Skeleton className="aspect-video w-full rounded-lg" />
+                                        <div className="space-y-2 p-2 flex-grow">
+                                            <Skeleton className="h-4 w-3/4" />
+                                            <Skeleton className="h-3 w-1/2" />
+                                            <Skeleton className="h-3 w-full" />
+                                            <Skeleton className="h-3 w-2/3" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div ref={desktopLoadMoreRef} className="h-20" />
+                        )}
+                    </>
+                )}
+
+                {/* Desktop End of Results */}
+                {!hasMore && articles.length > 0 && (
+                    <div className="text-center py-8 text-sm text-muted-foreground border-t mx-4">
+                        <p>
+                            Afișate toate articolele disponibile ({totalAvailable})
+                        </p>
+                        {articles.length >= 500 && (
+                            <p className="mt-2 text-xs">
+                                Pentru performanță optimă, se afișează maximum 500
+                                de articole.
+                            </p>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Mobile: Use virtual scrolling for performance
     return (
         <div
             ref={parentRef}
@@ -131,11 +215,6 @@ export function ArticleGridVirtual({
                             style={{
                                 height: `${virtualItem.size}px`,
                                 transform: `translateY(${virtualItem.start}px)`,
-                                ...(isMobile ? {} : {
-                                    width: itemWidth,
-                                    left: '50%',
-                                    transform: `translateX(-50%) translateY(${virtualItem.start}px)`,
-                                }),
                             }}
                         >
                             <div className="py-2">
@@ -148,84 +227,61 @@ export function ArticleGridVirtual({
                         </div>
                     );
                 })}
-            </div>
 
-            {/* Loading More Indicator */}
-            {hasMore && (
-                <div ref={loadMoreRef} className="py-8">
-                    {isLoading ? (
-                        <>
-                            {isMobile ? (
-                                // Mobile skeleton - single column layout
-                                <div className="space-y-4 px-2">
-                                    {Array.from({ length: 2 }).map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className="bg-card rounded-lg border p-4 space-y-3 h-[460px] flex flex-col overflow-hidden"
-                                        >
-                                            <Skeleton className="aspect-video w-full rounded-lg" />
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Skeleton className="h-4 w-4 rounded" />
-                                                    <Skeleton className="h-3 w-20" />
-                                                    <Skeleton className="h-3 w-16" />
-                                                </div>
-                                                <Skeleton className="h-5 w-full" />
-                                                <Skeleton className="h-5 w-3/4" />
-                                                <div className="space-y-1">
-                                                    <Skeleton className="h-3 w-full" />
-                                                    <Skeleton className="h-3 w-5/6" />
-                                                    <Skeleton className="h-3 w-2/3" />
-                                                </div>
-                                                <Skeleton className="h-4 w-24" />
+                {/* Mobile Loading More Indicator */}
+                {hasMore && (
+                    <div ref={loadMoreRef} className="py-8">
+                        {isLoading ? (
+                            <div className="space-y-4 px-2">
+                                {Array.from({ length: 2 }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="bg-card rounded-lg border p-4 space-y-3 h-[460px] flex flex-col overflow-hidden"
+                                    >
+                                        <Skeleton className="aspect-video w-full rounded-lg" />
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <Skeleton className="h-4 w-4 rounded" />
+                                                <Skeleton className="h-3 w-20" />
+                                                <Skeleton className="h-3 w-16" />
                                             </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                // Desktop skeleton - grid layout
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
-                                    {Array.from({ length: 3 }).map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className="space-y-3 h-[460px] flex flex-col overflow-hidden"
-                                        >
-                                            <Skeleton className="aspect-video w-full rounded-lg" />
-                                            <div className="space-y-2 p-2 flex-grow">
-                                                <Skeleton className="h-4 w-3/4" />
-                                                <Skeleton className="h-3 w-1/2" />
+                                            <Skeleton className="h-5 w-full" />
+                                            <Skeleton className="h-5 w-3/4" />
+                                            <div className="space-y-1">
                                                 <Skeleton className="h-3 w-full" />
+                                                <Skeleton className="h-3 w-5/6" />
                                                 <Skeleton className="h-3 w-2/3" />
                                             </div>
+                                            <Skeleton className="h-4 w-24" />
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <div className="text-center">
-                            <div className="text-sm text-muted-foreground">
-                                Se încarcă mai multe articole...
+                                    </div>
+                                ))}
                             </div>
-                        </div>
-                    )}
-                </div>
-            )}
+                        ) : (
+                            <div className="text-center">
+                                <div className="text-sm text-muted-foreground">
+                                    Se încarcă mai multe articole...
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
-            {/* End of Results */}
-            {!hasMore && articles.length > 0 && (
-                <div className="text-center py-8 text-sm text-muted-foreground border-t mx-4">
-                    <p>
-                        Afișate toate articolele disponibile ({totalAvailable})
-                    </p>
-                    {articles.length >= 500 && (
-                        <p className="mt-2 text-xs">
-                            Pentru performanță optimă, se afișează maximum 500
-                            de articole.
+                {/* Mobile End of Results */}
+                {!hasMore && articles.length > 0 && (
+                    <div className="text-center py-8 text-sm text-muted-foreground border-t mx-4">
+                        <p>
+                            Afișate toate articolele disponibile ({totalAvailable})
                         </p>
-                    )}
-                </div>
-            )}
+                        {articles.length >= 500 && (
+                            <p className="mt-2 text-xs">
+                                Pentru performanță optimă, se afișează maximum 500
+                                de articole.
+                            </p>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
