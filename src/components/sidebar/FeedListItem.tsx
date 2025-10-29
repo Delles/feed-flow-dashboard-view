@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Rss, TrendingUp, Eye, EyeOff } from "lucide-react";
+import { Rss, Eye, EyeOff } from "lucide-react";
 import { RSSFeed } from "@/types/rss";
 
 interface FeedListItemProps {
@@ -8,7 +8,6 @@ interface FeedListItemProps {
     isSelected: boolean;
     isFeedEnabled: boolean;
     isCategoryEnabled: boolean;
-    hasActiveFilter: boolean;
     shouldDim?: boolean;
     onSelectFeed: (feedId: string | null) => void;
     onToggleFeed: (feedId: string, enabled: boolean) => void;
@@ -20,31 +19,16 @@ const FeedListItem = memo(function FeedListItem({
     isSelected,
     isFeedEnabled,
     isCategoryEnabled,
-    hasActiveFilter,
     shouldDim = false,
     onSelectFeed,
     onToggleFeed,
 }: FeedListItemProps) {
     const isItemEnabled = isFeedEnabled && isCategoryEnabled;
 
-    // Simulate feed status for demo (in real app, this would come from feed data)
-    const getFeedStatus = () => {
-        const random = Math.random();
-        if (random > 0.8) return "error";
-        if (random > 0.6) return "warning";
-        return "online";
-    };
-
-    const feedStatus = getFeedStatus();
-
     return (
         <div
-            className={`transition-all duration-300 animate-fade-in ${
-                !isFeedEnabled
-                    ? "opacity-50 scale-95"
-                    : shouldDim
-                    ? "opacity-50 scale-95"
-                    : "opacity-100 scale-100"
+            className={`transition-all duration-200 ${
+                !isFeedEnabled || shouldDim ? "opacity-50" : "opacity-100"
             }`}
         >
             <button
@@ -52,94 +36,83 @@ const FeedListItem = memo(function FeedListItem({
                     if (!isItemEnabled) return;
                     onSelectFeed(feed.id);
                 }}
-                className={`w-full h-auto p-0 rounded-2xl floating-card scale-hover focus-ring transition-all duration-300 ${
+                className={`w-full px-2 py-2 rounded-md focus-ring transition-all duration-200 ${
                     !isItemEnabled ? "cursor-not-allowed" : ""
                 } ${
                     isSelected
-                        ? "highlight-gradient"
-                        : "bg-card border-border sidebar-hover-border"
+                        ? "bg-sidebar-primary/10 border border-sidebar-primary/30"
+                        : "hover:bg-sidebar-primary/5"
                 }`}
             >
-                <div className="flex items-center p-4 w-full gap-3">
-                    <div className="flex-shrink-0 relative">
+                <div className="flex items-center w-full gap-2">
+                    {/* Feed Icon */}
+                    <div className="flex-shrink-0">
                         <div
-                            className={`w-11 h-11 rounded-2xl flex items-center justify-center border-2 transition-all duration-300 status-indicator ${
+                            className={`w-7 h-7 rounded-md flex items-center justify-center transition-all duration-200 ${
                                 isSelected
-                                    ? "icon-subtle"
-                                    : "bg-muted border-border sidebar-hover-border"
-                            } status-${feedStatus}`}
+                                    ? "bg-sidebar-primary/20"
+                                    : "bg-muted"
+                            }`}
                         >
                             {feed.favicon ? (
-                                <span className="text-lg transition-transform duration-300 sidebar-hover-scale">
+                                <span className="text-sm">
                                     {feed.favicon}
                                 </span>
                             ) : (
                                 <Rss
-                                    className={`h-5 w-5 transition-all duration-300 ${
+                                    className={`h-3.5 w-3.5 ${
                                         isSelected
                                             ? "text-sidebar-primary"
-                                            : "text-muted-foreground sidebar-hover-text sidebar-hover-scale"
+                                            : "text-muted-foreground"
                                     }`}
                                 />
                             )}
                         </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0 pr-3">
-                                <h4
-                                    className={`font-bold text-sm leading-tight transition-colors duration-300 ${
-                                        isSelected
-                                            ? "text-sidebar-primary"
-                                            : "text-foreground sidebar-hover-text"
-                                    }`}
-                                >
-                                    {feed.title}
-                                </h4>
-                            </div>
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                                <div
-                                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-300 ${
-                                        isSelected
-                                            ? "bg-sidebar-primary/20 border border-sidebar-primary/30"
-                                            : "bg-muted sidebar-hover-bg"
-                                    }`}
-                                >
-                                    <TrendingUp
-                                        className={`h-3 w-3 transition-colors duration-300 ${
-                                            isSelected
-                                                ? "text-sidebar-primary"
-                                                : "text-muted-foreground sidebar-hover-text"
-                                        }`}
-                                    />
-                                    <span
-                                        className={`text-xs font-bold transition-colors duration-300 ${
-                                            isSelected
-                                                ? "text-sidebar-primary"
-                                                : "text-foreground sidebar-hover-text"
-                                        }`}
-                                    >
-                                        {articleCount}
-                                    </span>
-                                </div>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onToggleFeed(feed.id, !isFeedEnabled);
-                                    }}
-                                    className={`h-8 w-8 p-0 sidebar-hover-bg rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300 scale-hover focus-ring ${
-                                        !isCategoryEnabled
-                                            ? "opacity-50 cursor-not-allowed"
-                                            : ""
-                                    }`}
-                                >
-                                    {isItemEnabled ? (
-                                        <Eye className="h-4 w-4 text-sidebar-primary transition-transform duration-300 sidebar-hover-scale" />
-                                    ) : (
-                                        <EyeOff className="h-4 w-4 text-muted-foreground/50" />
-                                    )}
-                                </button>
-                            </div>
+
+                    {/* Feed Name & Count */}
+                    <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+                        <h4
+                            className={`font-medium text-sm truncate transition-colors duration-200 ${
+                                isSelected
+                                    ? "text-sidebar-primary"
+                                    : "text-foreground"
+                            }`}
+                        >
+                            {feed.title}
+                        </h4>
+                        
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {/* Article Count */}
+                            <span
+                                className={`text-xs font-medium px-1.5 py-0.5 rounded transition-colors duration-200 ${
+                                    isSelected
+                                        ? "text-sidebar-primary bg-sidebar-primary/10"
+                                        : "text-muted-foreground bg-muted"
+                                }`}
+                            >
+                                {articleCount}
+                            </span>
+
+                            {/* Toggle Visibility */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleFeed(feed.id, !isFeedEnabled);
+                                }}
+                                className={`p-0.5 hover:bg-sidebar-primary/10 rounded transition-all duration-200 focus-ring ${
+                                    !isCategoryEnabled
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : ""
+                                }`}
+                                title={isFeedEnabled ? "Ascunde sursa" : "Arată sursa"}
+                            >
+                                {isItemEnabled ? (
+                                    <Eye className="h-3.5 w-3.5 text-sidebar-primary" />
+                                ) : (
+                                    <EyeOff className="h-3.5 w-3.5 text-muted-foreground/50" />
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
