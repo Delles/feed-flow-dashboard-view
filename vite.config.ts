@@ -44,18 +44,14 @@ export default defineConfig(({ mode }) => ({
                         if (id.includes("@tanstack")) return "tanstack";
                         if (id.includes("@radix-ui")) return "radix";
                         if (id.includes("lucide-react")) return "lucide";
-                        // UI libraries for mobile optimization
-                        if (id.includes("sonner") || id.includes("vaul") || id.includes("input-otp"))
+                        if (id.includes("sonner") || id.includes("vaul"))
                             return "ui-mobile";
-                        // Form libraries
                         if (id.includes("react-hook-form") || id.includes("@hookform"))
                             return "forms";
-                        // Utility libraries
                         if (id.includes("clsx") || id.includes("tailwind-merge"))
                             return "utils";
                     }
 
-                    // Application feature chunks
                     if (id.includes("/components/")) {
                         if (id.includes("Article")) return "articles";
                         if (id.includes("sidebar") || id.includes("Sidebar")) return "sidebar";
@@ -88,7 +84,6 @@ export default defineConfig(({ mode }) => ({
             "@tanstack/react-query",
             "lucide-react",
             "@radix-ui/react-dialog",
-            "@radix-ui/react-dropdown-menu",
         ],
         exclude: ["@vite/client", "@vite/env"],
     },

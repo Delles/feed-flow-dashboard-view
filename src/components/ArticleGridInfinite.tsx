@@ -13,13 +13,6 @@ interface ArticleGridInfiniteProps {
     totalAvailable: number;
 }
 
-/**
- * Optimized infinite scrolling grid that:
- * 1. Uses intersection observer for efficient scroll detection
- * 2. Renders articles in a responsive grid
- * 3. Shows loading states and handles empty states
- * 4. Optimizes image loading with progressive enhancement
- */
 export function ArticleGridInfinite({
     articles,
     feeds,
@@ -31,7 +24,6 @@ export function ArticleGridInfinite({
     const loadMoreRef = useRef<HTMLDivElement>(null);
     const isMobile = useIsMobile();
 
-    // Intersection Observer for infinite scrolling
     const handleIntersection = useCallback(
         (entries: IntersectionObserverEntry[]) => {
             const [entry] = entries;
@@ -47,7 +39,7 @@ export function ArticleGridInfinite({
         if (!element) return;
 
         const observer = new IntersectionObserver(handleIntersection, {
-            rootMargin: "100px", // Trigger 100px before the element comes into view
+            rootMargin: "100px",
         });
 
         observer.observe(element);
@@ -57,7 +49,6 @@ export function ArticleGridInfinite({
         };
     }, [handleIntersection]);
 
-    // Empty state
     if (articles.length === 0 && !isLoading) {
         return (
             <div className="text-center py-12">
@@ -81,9 +72,7 @@ export function ArticleGridInfinite({
                 contentVisibility: "auto",
             }}
         >
-            {/* Articles Grid */}
             {!isMobile ? (
-                // Desktop layout - grid
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {articles.map((article, index) => (
                         <ArticleCard
@@ -95,7 +84,6 @@ export function ArticleGridInfinite({
                     ))}
                 </div>
             ) : (
-                // Mobile layout - single column
                 <div className="space-y-4">
                     {articles.map((article, index) => (
                         <ArticleCard
@@ -108,13 +96,11 @@ export function ArticleGridInfinite({
                 </div>
             )}
 
-            {/* Loading More Indicator */}
             {hasMore && (
                 <div ref={loadMoreRef} className="py-8">
                     {isLoading ? (
                         <>
                             {!isMobile ? (
-                                // Desktop skeleton - grid layout
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {Array.from({ length: 3 }).map((_, i) => (
                                         <div
@@ -132,7 +118,6 @@ export function ArticleGridInfinite({
                                     ))}
                                 </div>
                             ) : (
-                                // Mobile skeleton - single column layout
                                 <div className="space-y-4">
                                     {Array.from({ length: 2 }).map((_, i) => (
                                         <div
@@ -170,7 +155,6 @@ export function ArticleGridInfinite({
                 </div>
             )}
 
-            {/* End of Results */}
             {!hasMore && articles.length > 0 && (
                 <div className="text-center py-8 text-sm text-muted-foreground border-t">
                     <p>

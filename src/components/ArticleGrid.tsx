@@ -11,13 +11,6 @@ interface ArticleGridProps {
     totalAvailable: number;
 }
 
-/**
- * Smart article grid component that automatically chooses between:
- * - Regular grid for small lists (< 50 articles)
- * - Virtualized grid for large lists (>= 50 articles)
- *
- * This provides optimal performance while maintaining good UX for all list sizes.
- */
 export function ArticleGrid({
     articles,
     feeds,
@@ -26,7 +19,6 @@ export function ArticleGrid({
     onLoadMore,
     totalAvailable,
 }: ArticleGridProps) {
-    // Use virtualization for larger lists to improve performance
     const shouldUseVirtualization = articles.length >= 50;
 
     if (shouldUseVirtualization) {

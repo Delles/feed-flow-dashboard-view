@@ -5,39 +5,15 @@ import { ArticleCard } from "./ArticleCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-/**
- * Props for the ArticleGridVirtual component
- */
 interface ArticleGridVirtualProps {
-    /** Array of articles to display */
     articles: Article[];
-    /** Array of RSS feeds for article metadata */
     feeds: RSSFeed[];
-    /** Whether more articles can be loaded */
     hasMore: boolean;
-    /** Whether articles are currently being loaded */
     isLoading: boolean;
-    /** Callback to load more articles */
     onLoadMore: () => void;
-    /** Total number of available articles */
     totalAvailable: number;
 }
 
-/**
- * Hybrid article grid component with responsive layout optimization.
- *
- * Features:
- * - Desktop: Regular CSS Grid layout (3 columns) for clean, consistent display
- * - Mobile: Virtual scrolling with @tanstack/react-virtual for performance
- * - Handles infinite scrolling with intersection observer
- * - Loading states and skeleton placeholders
- * - Responsive breakpoints for optimal UX on all devices
- *
- * Fix: Separated desktop and mobile layouts to prevent layout shifting issues.
- * Desktop uses standard grid (50+ articles = ~17 rows, manageable without virtualization).
- * Mobile uses virtual scrolling for performance with large lists.
- * Removed undefined 'itemWidth' variable that was causing ReferenceError.
- */
 export function ArticleGridVirtual({
     articles,
     feeds,
@@ -50,16 +26,13 @@ export function ArticleGridVirtual({
     const loadMoreRef = useRef<HTMLDivElement>(null);
     const desktopLoadMoreRef = useRef<HTMLDivElement>(null);
     const isMobile = useIsMobile();
-
-    // Fixed item height for consistent layout
     const itemHeight = 460;
 
-    // Configure virtualizer for mobile only (desktop uses regular grid)
     const virtualizer: Virtualizer<HTMLDivElement, HTMLDivElement> = useVirtualizer<HTMLDivElement, HTMLDivElement>({
         count: articles.length,
         getScrollElement: () => parentRef.current || null,
         estimateSize: () => itemHeight,
-        overscan: 5, // Render 5 extra items for smooth scrolling
+        overscan: 5,
     });
 
     const handleIntersection = useCallback(
@@ -72,17 +45,9 @@ export function ArticleGridVirtual({
         [hasMore, isLoading, onLoadMore]
     );
 
-    /**
-     * Set up intersection observer for infinite scrolling.
-     * Triggers loadMore when the loading indicator comes into view.
-     *
-     * Fix: Added null check before disconnecting observer to prevent memory leaks.
-     * Handles both mobile and desktop layouts.
-     */
     useEffect(() => {
         const observers: IntersectionObserver[] = [];
 
-        // Mobile intersection observer
         if (isMobile && loadMoreRef.current) {
             const mobileObserver = new IntersectionObserver(handleIntersection, {
                 rootMargin: "100px",
@@ -91,7 +56,6 @@ export function ArticleGridVirtual({
             observers.push(mobileObserver);
         }
 
-        // Desktop intersection observer
         if (!isMobile && desktopLoadMoreRef.current) {
             const desktopObserver = new IntersectionObserver(handleIntersection, {
                 rootMargin: "100px",
@@ -100,12 +64,9 @@ export function ArticleGridVirtual({
             observers.push(desktopObserver);
         }
 
-        return () => {
-            observers.forEach(observer => observer.disconnect());
-        };
+        return () => observers.forEach(observer => observer.disconnect());
     }, [handleIntersection, isMobile]);
 
-    // Memoize article-feed mapping for performance
     const articlesWithFeeds = useMemo(() =>
         articles.map(article => ({
             article,
@@ -114,7 +75,6 @@ export function ArticleGridVirtual({
         [articles, feeds]
     );
 
-    // Empty state
     if (articles.length === 0 && !isLoading) {
         return (
             <div className="text-center py-12">
@@ -130,7 +90,6 @@ export function ArticleGridVirtual({
         );
     }
 
-    // Desktop: Use regular grid layout for better UX (no virtualization needed for ~17 rows)
     if (!isMobile) {
         return (
             <div className="space-y-6">
@@ -145,7 +104,6 @@ export function ArticleGridVirtual({
                     ))}
                 </div>
 
-                {/* Desktop Loading More Indicator */}
                 {hasMore && (
                     <>
                         {isLoading ? (
@@ -171,7 +129,6 @@ export function ArticleGridVirtual({
                     </>
                 )}
 
-                {/* Desktop End of Results */}
                 {!hasMore && articles.length > 0 && (
                     <div className="text-center py-8 text-sm text-muted-foreground border-t mx-4">
                         <p>
@@ -189,7 +146,6 @@ export function ArticleGridVirtual({
         );
     }
 
-    // Mobile: Use virtual scrolling for performance
     return (
         <div
             ref={parentRef}
@@ -206,7 +162,7 @@ export function ArticleGridVirtual({
                 }}
             >
                 {(parentRef.current ? virtualizer.getVirtualItems() : []).map((virtualItem) => {
-                    const { article, feed } = articlesWithFeeds[virtualItem.index];
+                    const { article } = articlesWithFeeds[virtualItem.index];
 
                     return (
                         <div
@@ -228,7 +184,6 @@ export function ArticleGridVirtual({
                     );
                 })}
 
-                {/* Mobile Loading More Indicator */}
                 {hasMore && (
                     <div ref={loadMoreRef} className="py-8">
                         {isLoading ? (
@@ -267,7 +222,6 @@ export function ArticleGridVirtual({
                     </div>
                 )}
 
-                {/* Mobile End of Results */}
                 {!hasMore && articles.length > 0 && (
                     <div className="text-center py-8 text-sm text-muted-foreground border-t mx-4">
                         <p>

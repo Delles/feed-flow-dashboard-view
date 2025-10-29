@@ -10,21 +10,7 @@ import { useFeedManager } from "@/hooks/useFeedManager";
 import { useFilters } from "@/hooks/useFilters";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-/**
- * Main page component for the RSS feed dashboard.
- *
- * This component orchestrates the entire application by:
- * - Managing RSS feed data and filtering state
- * - Handling infinite scrolling and search functionality
- * - Providing responsive layout with sidebar and main content
- * - Implementing scroll-to-top functionality for mobile
- * - Enhanced error handling and network-aware data fetching
- *
- * Fix: Added ErrorBoundary around ArticleGrid to catch and display scroll-related errors gracefully.
- */
 const Index = () => {
-    // ===== DATA MANAGEMENT =====
-    // Encapsulated hook for managing RSS feed data and loading states
     const {
         feeds,
         articles,
@@ -37,8 +23,6 @@ const Index = () => {
         refetch,
     } = useFeedManager();
 
-    // ===== FILTER STATE MANAGEMENT =====
-    // Encapsulated hook for managing user filter selections
     const {
         selectedFeed,
         selectedCategory,
@@ -48,9 +32,6 @@ const Index = () => {
         handleSearch,
     } = useFilters();
 
-
-    // ===== INFINITE SCROLL MANAGEMENT =====
-    // Hook for managing article display with infinite scrolling
     const {
         displayedArticles,
         hasMore,
@@ -69,38 +50,22 @@ const Index = () => {
         enabledCategories,
     });
 
-    // ===== UI STATE =====
-    // State for mobile scroll-to-top button visibility
     const [showScrollTop, setShowScrollTop] = useState(false);
+    useEffect(() => reset(), [searchQuery, selectedFeed, selectedCategory, reset]);
 
-    // ===== EFFECTS =====
-    // Reset infinite scroll when filter criteria change
-    useEffect(() => {
-        reset();
-    }, [searchQuery, selectedFeed, selectedCategory, reset]);
-
-    // Handle scroll-to-top button visibility
     useEffect(() => {
         const onScroll = () => setShowScrollTop(window.scrollY > 400);
         window.addEventListener("scroll", onScroll);
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
-    // ===== UTILITY FUNCTIONS =====
-    const scrollToTop = () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    };
+    const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-    if (isInitialLoading) {
-        return <LoadingSkeleton />;
-    }
+    if (isInitialLoading) return <LoadingSkeleton />;
 
-    // ===== RENDER =====
     return (
         <SidebarProvider>
             <div className="min-h-screen flex w-full bg-background justify-center">
-                {/* ===== SIDEBAR ===== */}
-                {/* Navigation and filter controls */}
                 <AppSidebar
                     feeds={feeds}
                     articles={articles}
@@ -116,10 +81,7 @@ const Index = () => {
                     onToggleCategory={handleToggleCategory}
                 />
 
-                {/* ===== MAIN CONTENT ===== */}
                 <div className="flex flex-col flex-1 w-full max-w-6xl mx-4 md:mx-8">
-                    {/* ===== HEADER ===== */}
-                    {/* Search, navigation, and action buttons */}
                     <PageHeader
                         feeds={feeds}
                         selectedFeed={selectedFeed}
@@ -132,16 +94,10 @@ const Index = () => {
                         onRefresh={refetch}
                         onSelectFeed={handleSelectFeed}
                         onSelectCategory={handleSelectCategory}
-                        onAddFeed={() => {}} // Placeholder, not implemented
+                        onAddFeed={() => {}}
                     />
 
-                    {/* ===== ARTICLE GRID ===== */}
-                    {/* Main content area with infinite scrolling */}
                     <main className="flex-1 p-6 pt-4 md:pt-6">
-                        {/*
-                            ErrorBoundary: Catches scroll-related errors and displays user-friendly error messages
-                            instead of white screens. Essential for graceful error handling during infinite scrolling.
-                        */}
                         <ErrorBoundary>
                             <ArticleGrid
                                 articles={displayedArticles}
@@ -154,8 +110,6 @@ const Index = () => {
                         </ErrorBoundary>
                     </main>
 
-                    {/* ===== SCROLL TO TOP BUTTON ===== */}
-                    {/* Mobile-only floating action button */}
                     {showScrollTop && (
                         <button
                             onClick={scrollToTop}

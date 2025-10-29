@@ -18,7 +18,7 @@ export interface IncrementalFeedsResult {
 
 export function useIncrementalFeeds(): IncrementalFeedsResult {
     const queryClient = useQueryClient();
-    const { handleError, createNetworkError } = useErrorHandler();
+    const { handleError } = useErrorHandler();
 
     const queryResults = useQueries({
         queries: mockFeeds.map((mockFeed) => ({
@@ -43,8 +43,7 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
 
                     return { feed: updatedFeed, articles: updatedArticles };
                 } catch (error) {
-                    // Use error handler for user-friendly error messages
-                    const appError = handleError(error, `Feed ${mockFeed.title}`);
+                    handleError(error, `Feed ${mockFeed.title}`);
 
                     // Return fallback data on error
                     const fallbackFeed: RSSFeed = {
