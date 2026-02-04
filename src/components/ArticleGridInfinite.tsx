@@ -1,8 +1,6 @@
 import { useRef, useEffect, useCallback } from "react";
 import { Article, RSSFeed } from "@/types/rss";
 import { ArticleCard } from "./ArticleCard";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ArticleGridInfiniteProps {
     articles: Article[];
@@ -22,7 +20,6 @@ export function ArticleGridInfinite({
     totalAvailable,
 }: ArticleGridInfiniteProps) {
     const loadMoreRef = useRef<HTMLDivElement>(null);
-    const isMobile = useIsMobile();
 
     const handleIntersection = useCallback(
         (entries: IntersectionObserverEntry[]) => {

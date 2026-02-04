@@ -142,7 +142,7 @@ export function AppSidebar({
                             animate={{ scale: 1, opacity: 1 }}
                             className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20"
                         >
-                            <Rss className="w-4.5 h-4.5 text-white" />
+                            <Rss className="w-[18px] h-[18px] text-white" />
                         </motion.div>
                         <div>
                             <h2 className="font-serif font-black text-lg tracking-tight text-foreground leading-none">

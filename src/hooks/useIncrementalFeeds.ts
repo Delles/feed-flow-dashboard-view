@@ -35,9 +35,9 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
                         errorCount: 0, // Track feed-specific errors
                     } as RSSFeed;
 
-                    const updatedArticles: Article[] = articles.map((a) => {
+                    const updatedArticles: Article[] = articles.map((a, index) => {
                         // Generate a stable ID
-                        const uniqueString = a.url || a.title || "unknown";
+                        const uniqueString = a.url || a.title || `unknown-${index}`;
                         // Simple hash function to ensure stable ID
                         let hash = 0;
                         for (let i = 0; i < uniqueString.length; i++) {

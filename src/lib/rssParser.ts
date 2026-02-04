@@ -33,6 +33,8 @@ function extractTextContent(element: Element | null): string {
 async function fetchWithProxy(url: string): Promise<string> {
   console.log("Attempting to fetch RSS feed:", url);
 
+  const isXmlText = (text: string) => text.includes('<rss') || text.includes('<?xml');
+
   for (let i = 0; i < CORS_PROXIES.length; i++) {
     const proxy = CORS_PROXIES[i];
     console.log(`Trying proxy ${i + 1}/${CORS_PROXIES.length}:`, proxy);
@@ -52,7 +54,7 @@ async function fetchWithProxy(url: string): Promise<string> {
 
       // Check if response is XML directly
       if (contentType.includes('xml') || contentType.includes('text')) {
-        if (bodyText.includes('<rss') || bodyText.includes('<?xml')) {
+        if (isXmlText(bodyText)) {
           console.log("Successfully fetched RSS data as XML with proxy:", proxy);
           return bodyText;
         }
@@ -65,13 +67,13 @@ async function fetchWithProxy(url: string): Promise<string> {
         // Different proxy services return data in different formats
         const xmlText = data.contents || data.body || data.data || data;
 
-        if (typeof xmlText === 'string' && (xmlText.includes('<rss') || xmlText.includes('<?xml'))) {
+        if (typeof xmlText === 'string' && isXmlText(xmlText)) {
           console.log("Successfully fetched RSS data as JSON with proxy:", proxy);
           return xmlText;
         }
       } catch (jsonError) {
         // If JSON parsing fails, check if the body text itself is XML
-        if (bodyText.includes('<rss') || bodyText.includes('<?xml')) {
+        if (isXmlText(bodyText)) {
           console.log("Successfully fetched RSS data as text with proxy:", proxy);
           return bodyText;
         }

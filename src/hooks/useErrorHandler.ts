@@ -63,8 +63,9 @@ export function useErrorHandler() {
         if (error instanceof AppError) {
             appError = error;
         } else if (error instanceof Error) {
-            // Try to determine error type from common patterns
-            if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('CORS') || error.message.includes('proxy')) {
+            // Try to determine error type from common patterns (case-insensitive)
+            const msg = error.message.toLowerCase();
+            if (msg.includes('fetch') || msg.includes('network') || msg.includes('cors') || msg.includes('proxy')) {
                 appError = new AppError(
                     error.message,
                     ErrorType.NETWORK,

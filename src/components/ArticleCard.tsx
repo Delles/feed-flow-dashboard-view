@@ -34,6 +34,36 @@ function timeSince(date: Date): string {
     return "chiar acum";
 }
 
+// Extracted outside to prevent re-creation on each render
+const ImagePlaceholder = () => (
+    <div className="w-full h-full bg-secondary/20 flex flex-col items-center justify-center p-8 relative overflow-hidden group-hover:scale-105 transition-transform duration-700">
+        {/* Stylized background lines mimicking a newspaper layout */}
+        <div className="absolute inset-0 opacity-[0.05] dark:opacity-[0.1] pointer-events-none">
+            <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M10 20 H90 M10 30 H90 M10 40 H90 M10 60 H90 M10 70 H90 M10 80 H90" stroke="currentColor" strokeWidth="0.5" fill="none" />
+                <rect x="10" y="45" width="20" height="10" fill="currentColor" />
+                <rect x="35" y="45" width="55" height="2" fill="currentColor" />
+                <rect x="35" y="50" width="55" height="2" fill="currentColor" />
+            </svg>
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center gap-6 text-muted-foreground/30 group-hover:text-primary/40 transition-all duration-500">
+            <div className="relative">
+                <Newspaper className="w-16 h-16 stroke-[0.75px]" />
+                <motion.div
+                    animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -inset-6 bg-primary/5 rounded-full blur-2xl -z-10"
+                />
+            </div>
+        </div>
+
+        {/* Subtle corner accents */}
+        <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-current opacity-10" />
+        <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-current opacity-10" />
+    </div>
+);
+
 function ArticleCardComponent({
     article,
     feedsMap,
@@ -62,38 +92,12 @@ function ArticleCardComponent({
         return () => observer.disconnect();
     }, [isFirst]);
 
-    const src = useOriginal && article.image ? article.image : article.image ? getOptimisedImage(article.image, 600, 85) : "";
-    
-    const openArticle = () => window.open(article.url, "_blank");
+    // Simplified ternary for readability
+    const src = article.image
+        ? (useOriginal ? article.image : getOptimisedImage(article.image, 600, 85))
+        : "";
 
-    const ImagePlaceholder = () => (
-        <div className="w-full h-full bg-secondary/20 flex flex-col items-center justify-center p-8 relative overflow-hidden group-hover:scale-105 transition-transform duration-700">
-            {/* Stylized background lines mimicking a newspaper layout */}
-            <div className="absolute inset-0 opacity-[0.05] dark:opacity-[0.1] pointer-events-none">
-                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <path d="M10 20 H90 M10 30 H90 M10 40 H90 M10 60 H90 M10 70 H90 M10 80 H90" stroke="currentColor" strokeWidth="0.5" fill="none" />
-                    <rect x="10" y="45" width="20" height="10" fill="currentColor" />
-                    <rect x="35" y="45" width="55" height="2" fill="currentColor" />
-                    <rect x="35" y="50" width="55" height="2" fill="currentColor" />
-                </svg>
-            </div>
-            
-            <div className="relative z-10 flex flex-col items-center gap-6 text-muted-foreground/30 group-hover:text-primary/40 transition-all duration-500">
-                <div className="relative">
-                    <Newspaper className="w-16 h-16 stroke-[0.75px]" />
-                    <motion.div 
-                        animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute -inset-6 bg-primary/5 rounded-full blur-2xl -z-10" 
-                    />
-                </div>
-            </div>
-            
-            {/* Subtle corner accents */}
-            <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-current opacity-10" />
-            <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-current opacity-10" />
-        </div>
-    );
+    const openArticle = () => window.open(article.url, "_blank");
 
     return (
         <motion.div
@@ -122,7 +126,7 @@ function ArticleCardComponent({
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
                 </AspectRatio>
-                
+
                 {feed?.category && (
                     <Badge className="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur-md text-foreground border-none font-semibold text-[10px] uppercase tracking-wider shadow-sm">
                         {feed.category}
