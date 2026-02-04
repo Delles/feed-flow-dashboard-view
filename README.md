@@ -67,7 +67,7 @@ A modern, high-performance RSS feed dashboard built with React and TypeScript, s
    ```
 
 4. **Open in browser**
-   ```
+   ```text
    http://localhost:8080
    ```
 

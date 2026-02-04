@@ -228,9 +228,27 @@ function ArticleCardComponent({
 }
 
 export const ArticleCard = memo(ArticleCardComponent, (prev, next) => {
-    return (
-        prev.article.id === next.article.id &&
-        prev.isFirst === next.isFirst &&
-        prev.feedsMap === next.feedsMap
-    );
+    // Return false (re-render) if article reference changed
+    if (prev.article !== next.article) return false;
+
+    // Return false if any display fields changed (in case of same reference but mutation, 
+    // or if we want to be explicit about what matters)
+    if (
+        prev.article.title !== next.article.title ||
+        prev.article.description !== next.article.description ||
+        prev.article.image !== next.article.image ||
+        prev.article.pubDate !== next.article.pubDate
+    ) {
+        return false;
+    }
+
+    // Check specific feed object relationship instead of entire map reference
+    const prevFeed = prev.feedsMap.get(prev.article.feedId);
+    const nextFeed = next.feedsMap.get(next.article.feedId);
+    if (prevFeed !== nextFeed) return false;
+
+    // Check header priority flag
+    if (prev.isFirst !== next.isFirst) return false;
+
+    return true;
 });
