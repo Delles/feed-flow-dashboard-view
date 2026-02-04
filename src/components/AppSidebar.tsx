@@ -215,7 +215,9 @@ export function AppSidebar({
                 <Button
                     variant="outline"
                     className="w-full rounded-2xl font-bold uppercase tracking-widest text-[9px] h-12 bg-background/50 border-border/40 hover:bg-primary hover:text-white hover:border-primary transition-all duration-500 shadow-sm hover:shadow-primary/20 group"
-                    onClick={onOpenAddFeedDialog}
+                    onClick={onOpenAddFeedDialog ?? undefined}
+                    disabled={!onOpenAddFeedDialog}
+                    aria-disabled={!onOpenAddFeedDialog}
                 >
                     <Plus className="mr-2 h-3.5 w-3.5 transition-transform group-hover:rotate-90" />
                     Adaugă Sursă

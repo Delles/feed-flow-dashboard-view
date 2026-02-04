@@ -75,6 +75,7 @@ function ArticleCardComponent({
     const [useOriginal, setUseOriginal] = useState(false);
     const [isVisible, setIsVisible] = useState(isFirst);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [imageFailed, setImageFailed] = useState(false);
 
     useEffect(() => {
         if (!imgRef.current || isFirst) return;
@@ -97,7 +98,23 @@ function ArticleCardComponent({
         ? (useOriginal ? article.image : getOptimisedImage(article.image, 600, 85))
         : "";
 
-    const openArticle = () => window.open(article.url, "_blank");
+    const openArticle = () => window.open(article.url, "_blank", "noopener,noreferrer");
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openArticle();
+        }
+    };
+
+    const handleImageError = () => {
+        if (!useOriginal) {
+            setUseOriginal(true);
+            setImageLoaded(false);
+        } else {
+            setImageFailed(true);
+        }
+    };
 
     return (
         <motion.div
@@ -107,18 +124,22 @@ function ArticleCardComponent({
             transition={{ duration: 0.6, delay: Math.min(index * 0.05, 0.4), ease: [0.21, 0.47, 0.32, 0.98] }}
             className="group flex flex-col h-full bg-card rounded-xl overflow-hidden premium-shadow hover-lift cursor-pointer border border-border/50"
             onClick={openArticle}
+            onKeyDown={handleKeyDown}
+            role="button"
+            tabIndex={0}
+            aria-label={`Citește: ${article.title}`}
         >
             <div className="relative overflow-hidden">
                 <AspectRatio ratio={16 / 9} className="bg-muted/50">
                     <div className="w-full h-full" ref={imgRef}>
-                        {isVisible && article.image ? (
+                        {isVisible && article.image && !imageFailed ? (
                             <img
                                 src={src}
                                 alt={article.title}
                                 className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
                                 loading={isFirst ? "eager" : "lazy"}
                                 onLoad={() => setImageLoaded(true)}
-                                onError={() => setUseOriginal(true)}
+                                onError={handleImageError}
                             />
                         ) : (
                             <ImagePlaceholder />

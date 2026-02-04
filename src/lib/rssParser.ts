@@ -20,20 +20,33 @@ function extractTextContent(element: Element | null): string {
   // Handle CDATA sections
   const textContent = element.textContent || "";
 
-  // Clean up the text content
+  // Clean up the text content and decode HTML entities properly
   return textContent
     .replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1') // Remove CDATA wrapper
     .replace(/<[^>]*>/g, '') // Remove HTML tags
     .replace(/&quot;/g, '"')
     .replace(/&#537;/g, 'ș')
-    .replace(/&[^;]+;/g, '') // Remove other HTML entities
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
     .trim();
 }
 
 async function fetchWithProxy(url: string): Promise<string> {
   console.log("Attempting to fetch RSS feed:", url);
 
-  const isXmlText = (text: string) => text.includes('<rss') || text.includes('<?xml');
+  // Improved XML detection: case-insensitive, supports RSS, Atom, and RDF feeds
+  const isXmlText = (text: string) => {
+    const trimmed = text.trimStart().toLowerCase();
+    return trimmed.includes('<rss') ||
+      trimmed.includes('<?xml') ||
+      trimmed.includes('<feed') ||  // Atom feeds
+      trimmed.includes('<rdf');     // RDF feeds
+  };
 
   for (let i = 0; i < CORS_PROXIES.length; i++) {
     const proxy = CORS_PROXIES[i];
@@ -182,10 +195,9 @@ export async function parseRSSFeed(url: string): Promise<ParsedRSSFeed> {
         .substring(0, 300) // Increase limit slightly
         .trim();
 
-      let pubDate: Date;
-      try {
-        pubDate = pubDateText ? new Date(pubDateText) : new Date();
-      } catch {
+      let pubDate = pubDateText ? new Date(pubDateText) : new Date();
+      // new Date() never throws, so validate with isNaN
+      if (isNaN(pubDate.getTime())) {
         pubDate = new Date();
       }
 

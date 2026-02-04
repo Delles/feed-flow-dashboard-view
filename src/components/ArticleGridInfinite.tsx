@@ -75,14 +75,17 @@ export function ArticleGridInfinite({
                 ))}
             </div>
 
+            {/* Sentinel element for intersection observer - always present when hasMore */}
             {hasMore && (
                 <div ref={loadMoreRef} className="py-20 flex justify-center">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
-                            Se încarcă articole noi...
-                        </p>
-                    </div>
+                    {isLoading && (
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
+                                Se încarcă articole noi...
+                            </p>
+                        </div>
+                    )}
                 </div>
             )}
 

@@ -2,8 +2,13 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Extracted outside to prevent re-creation on each render
+// Hidden from assistive technology as they are purely decorative
 const ArticleCardSkeleton = () => (
-    <div className="flex flex-col h-[420px] rounded-xl border border-border/50 bg-card/50 overflow-hidden animate-pulse">
+    <div
+        className="flex flex-col h-[420px] rounded-xl border border-border/50 bg-card/50 overflow-hidden animate-pulse"
+        aria-hidden="true"
+        role="presentation"
+    >
         <div className="w-full aspect-video bg-muted/40" />
         <div className="p-6 space-y-5">
             <div className="flex items-center gap-3">
@@ -24,7 +29,11 @@ const ArticleCardSkeleton = () => (
 );
 
 const HeaderSkeleton = () => (
-    <header className="sticky top-0 z-30 flex flex-col bg-background/80 backdrop-blur-xl border-b border-border/50 px-6 py-6">
+    <header
+        className="sticky top-0 z-30 flex flex-col bg-background/80 backdrop-blur-xl border-b border-border/50 px-6 py-6"
+        aria-hidden="true"
+        role="presentation"
+    >
         <div className="flex justify-between items-center mb-8">
             <div className="h-8 w-40 bg-muted rounded-lg" />
             <div className="flex gap-3">

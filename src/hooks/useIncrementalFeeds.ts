@@ -132,7 +132,7 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
     // Enhanced loading states
     const isInitialLoading = feeds.length === 0 && queryResults.some((qr) => qr.isLoading);
     const isFetching = queryResults.some((qr) => qr.isFetching);
-    const isError = queryResults.some((qr) => qr.error);
+    const isError = errorCount > 0 || queryResults.some((qr) => qr.error);
 
     // Enhanced refetch functions
     const refetch = useCallback(async () => {
