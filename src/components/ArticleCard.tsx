@@ -1,35 +1,21 @@
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-} from "@/components/ui/card";
 import { Article, RSSFeed } from "@/types/rss";
-import { Rss, Clock, ExternalLink } from "lucide-react";
+import { Rss, Clock, ChevronRight, Newspaper } from "lucide-react";
 import { getOptimisedImage } from "@/lib/utils";
 import { useState, useRef, useEffect, memo } from "react";
+import { motion } from "framer-motion";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
-/**
- * Props for the ArticleCard component
- */
 interface ArticleCardProps {
-    /** Article data to display */
     article: Article;
-    /** Map of RSS feeds for metadata lookup */
     feedsMap: Map<string, RSSFeed>;
-    /** Whether this is the first article (for image priority) */
     isFirst?: boolean;
+    index?: number;
 }
 
-/**
- * Converts a date to a relative time string (e.g., "acum 2 ore")
- */
 function timeSince(date: Date): string {
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-
     const intervals = [
         { divisor: 31536000, singular: "an", plural: "ani" },
         { divisor: 2592000, singular: "lună", plural: "luni" },
@@ -45,42 +31,54 @@ function timeSince(date: Date): string {
             return `acum ${count} ${count === 1 ? singular : plural}`;
         }
     }
-
     return "chiar acum";
 }
 
-const LOADING_PLACEHOLDER = (
-    <div className="flex flex-col items-center gap-2">
-        <Rss className="w-8 h-8 text-muted-foreground/50" />
-        <div className="w-16 h-1 bg-muted-foreground/20 rounded-full animate-pulse"></div>
+// Extracted outside to prevent re-creation on each render
+const ImagePlaceholder = () => (
+    <div className="w-full h-full bg-secondary/20 flex flex-col items-center justify-center p-8 relative overflow-hidden group-hover:scale-105 transition-transform duration-700">
+        {/* Stylized background lines mimicking a newspaper layout */}
+        <div className="absolute inset-0 opacity-[0.05] dark:opacity-[0.1] pointer-events-none">
+            <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M10 20 H90 M10 30 H90 M10 40 H90 M10 60 H90 M10 70 H90 M10 80 H90" stroke="currentColor" strokeWidth="0.5" fill="none" />
+                <rect x="10" y="45" width="20" height="10" fill="currentColor" />
+                <rect x="35" y="45" width="55" height="2" fill="currentColor" />
+                <rect x="35" y="50" width="55" height="2" fill="currentColor" />
+            </svg>
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center gap-6 text-muted-foreground/30 group-hover:text-primary/40 transition-all duration-500">
+            <div className="relative">
+                <Newspaper className="w-16 h-16 stroke-[0.75px]" />
+                <motion.div
+                    animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -inset-6 bg-primary/5 rounded-full blur-2xl -z-10"
+                />
+            </div>
+        </div>
+
+        {/* Subtle corner accents */}
+        <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-current opacity-10" />
+        <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-current opacity-10" />
     </div>
 );
 
-/**
- * Article card component displaying article content with image, metadata, and interactive elements.
- *
- * Features:
- * - Responsive image with lazy loading and fallbacks
- * - Feed metadata with avatar and category badges
- * - Hover effects and external link indicators
- * - Accessible keyboard navigation
- * - Optimized image loading for performance
- */
 function ArticleCardComponent({
     article,
     feedsMap,
     isFirst = false,
+    index = 0,
 }: ArticleCardProps) {
     const feed = feedsMap.get(article.feedId);
     const imgRef = useRef<HTMLImageElement>(null);
     const [useOriginal, setUseOriginal] = useState(false);
     const [isVisible, setIsVisible] = useState(isFirst);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [imageFailed, setImageFailed] = useState(false);
 
-    // Intersection Observer for lazy loading images only when needed
     useEffect(() => {
         if (!imgRef.current || isFirst) return;
-
         const observer = new IntersectionObserver(
             (entries) => {
                 const [entry] = entries;
@@ -89,166 +87,107 @@ function ArticleCardComponent({
                     observer.disconnect();
                 }
             },
-            { rootMargin: "50px" }
+            { rootMargin: "200px" }
         );
-
         observer.observe(imgRef.current);
-
         return () => observer.disconnect();
     }, [isFirst]);
 
-    const src =
-        useOriginal && article.image
-            ? article.image
-            : article.image
-                ? getOptimisedImage(article.image, 384, 80) // Optimize for actual display size ~350px
-                : "";
-    const srcSet =
-        !useOriginal && article.image
-            ? `${getOptimisedImage(
-                article.image,
-                384,
-                80
-            )} 384w, ${getOptimisedImage(
-                article.image,
-                512,
-                80
-            )} 512w, ${getOptimisedImage(article.image, 768, 80)} 768w`
-            : undefined;
+    // Simplified ternary for readability
+    const src = article.image
+        ? (useOriginal ? article.image : getOptimisedImage(article.image, 600, 85))
+        : "";
 
-    // Preload the first visible image to improve LCP on mobile
-    useEffect(() => {
-        if (!isFirst || !src) return;
-        const link = document.createElement("link");
-        link.rel = "preload";
-        link.as = "image";
-        link.href = src;
-        if (srcSet) {
-            link.setAttribute("imagesrcset", srcSet);
-            link.setAttribute("imagesizes", "(max-width: 640px) 92vw, 384px");
+    const openArticle = () => window.open(article.url, "_blank", "noopener,noreferrer");
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openArticle();
         }
-        document.head.appendChild(link);
-        return () => {
-            document.head.removeChild(link);
-        };
-    }, [isFirst, src, srcSet]);
+    };
 
-    const openArticle = () => window.open(article.url, "_blank");
+    const handleImageError = () => {
+        if (!useOriginal) {
+            setUseOriginal(true);
+            setImageLoaded(false);
+        } else {
+            setImageFailed(true);
+        }
+    };
 
     return (
-        <Card
-            className="group flex flex-col h-[460px] overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out cursor-pointer border-border/50 hover:border-primary/20"
-            style={{ contentVisibility: "auto", containIntrinsicSize: "460px" }}
+        <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: Math.min(index * 0.05, 0.4), ease: [0.21, 0.47, 0.32, 0.98] }}
+            className="group flex flex-col h-full bg-card rounded-xl overflow-hidden premium-shadow hover-lift cursor-pointer border border-border/50"
             onClick={openArticle}
+            onKeyDown={handleKeyDown}
+            role="button"
+            tabIndex={0}
+            aria-label={`Citește: ${article.title}`}
         >
-            <AspectRatio ratio={16 / 9} className="bg-muted/30">
-                <div
-                    className="w-full h-full overflow-hidden relative"
-                    ref={imgRef}
-                >
-                    {/* Always show placeholder first to prevent layout shift */}
-                    <div className="w-full h-full bg-gradient-to-br from-muted/20 to-muted/40 flex items-center justify-center absolute inset-0">
-                        {LOADING_PLACEHOLDER}
-                    </div>
-                    {isVisible && (
-                        <img
-                            src={src}
-                            srcSet={srcSet}
-                            sizes="(max-width: 640px) 92vw, 384px"
-                            alt={article.title}
-                            className={`w-full h-full object-cover transition-all duration-500 absolute inset-0 ${imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"
-                                }`}
-                            loading={isFirst ? "eager" : "lazy"}
-                            fetchPriority={isFirst ? "high" : "auto"}
-                            decoding="async"
-                            width={384}
-                            height={216}
-                            onLoad={() => setImageLoaded(true)}
-                            onError={() => {
-                                if (!useOriginal) {
-                                    setUseOriginal(true);
-                                } else {
-                                    setImageLoaded(true); // Show broken image state
-                                }
-                            }}
-                        />
-                    )}
-
-                    {/* Overlay with external link indicator */}
-                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="bg-background/80 backdrop-blur-sm rounded-full p-2 border shadow-lg">
-                            <ExternalLink className="w-4 h-4 text-foreground" />
-                        </div>
-                    </div>
-                </div>
-            </AspectRatio>
-            <CardHeader className="p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8">
-                            <AvatarImage
-                                src={feed?.favicon}
-                                alt={`${feed?.title} favicon`}
-                                className="object-cover"
+            <div className="relative overflow-hidden">
+                <AspectRatio ratio={16 / 9} className="bg-muted/50">
+                    <div className="w-full h-full" ref={imgRef}>
+                        {isVisible && article.image && !imageFailed ? (
+                            <img
+                                src={src}
+                                alt={article.title}
+                                className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+                                loading={isFirst ? "eager" : "lazy"}
+                                onLoad={() => setImageLoaded(true)}
+                                onError={handleImageError}
                             />
-                            <AvatarFallback className="text-xs">
-                                {feed?.favicon || <Rss className="w-4 h-4" />}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                            <span className="font-semibold text-sm text-foreground">
-                                {feed?.title ?? "Sursă necunoscută"}
-                            </span>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Clock className="w-3 h-3" />
-                                {timeSince(new Date(article.pubDate))}
-                            </div>
-                        </div>
+                        ) : (
+                            <ImagePlaceholder />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
-                    {feed?.category && (
-                        <Badge variant="secondary" className="text-xs">
-                            {feed.category}
-                        </Badge>
-                    )}
+                </AspectRatio>
+
+                {feed?.category && (
+                    <Badge className="absolute top-3 left-3 bg-white/90 dark:bg-black/80 backdrop-blur-md text-foreground border-none font-semibold text-[10px] uppercase tracking-wider shadow-sm">
+                        {feed.category}
+                    </Badge>
+                )}
+            </div>
+
+            <div className="p-6 flex flex-col flex-grow gap-4">
+                <div className="flex items-center gap-2">
+                    <Avatar className="w-5 h-5 ring-1 ring-border">
+                        <AvatarImage src={feed?.favicon} alt={feed?.title} />
+                        <AvatarFallback className="text-[10px] bg-primary/5">
+                            {feed?.title?.charAt(0) || <Rss className="w-3 h-3" />}
+                        </AvatarFallback>
+                    </Avatar>
+                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest truncate">
+                        {feed?.title ?? "Sursă Necunoscută"}
+                    </span>
+                    <div className="ml-auto flex items-center gap-1 text-[10px] font-medium text-muted-foreground/70">
+                        <Clock className="w-3 h-3" />
+                        {timeSince(new Date(article.pubDate))}
+                    </div>
                 </div>
-                <h3 className="font-bold text-lg leading-tight text-card-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
+
+                <h3 className="font-serif font-bold text-xl leading-[1.3] text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-2">
                     {article.title}
                 </h3>
-            </CardHeader>
-            <CardContent className="p-4 pt-0 text-sm text-muted-foreground flex-grow">
-                <p className="line-clamp-3 leading-relaxed">
+
+                <p className="text-sm leading-relaxed text-muted-foreground line-clamp-3 font-normal">
                     {article.description}
                 </p>
-            </CardContent>
-            <CardFooter className="p-4 pt-0 mt-auto text-primary font-semibold text-sm">
-                Citește mai mult
-            </CardFooter>
-        </Card>
+            </div>
+
+            <div className="px-6 pb-6 mt-auto">
+                <div className="flex items-center gap-1 text-[11px] font-bold text-primary uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0">
+                    Citește articolul <ChevronRight className="w-3.5 h-3.5" />
+                </div>
+            </div>
+        </motion.div>
     );
 }
 
-export const ArticleCard = memo(ArticleCardComponent, (prev, next) => {
-    // Return false (re-render) if article reference changed
-    if (prev.article !== next.article) return false;
-
-    // Return false if any display fields changed (in case of same reference but mutation, 
-    // or if we want to be explicit about what matters)
-    if (
-        prev.article.title !== next.article.title ||
-        prev.article.description !== next.article.description ||
-        prev.article.image !== next.article.image ||
-        prev.article.pubDate !== next.article.pubDate
-    ) {
-        return false;
-    }
-
-    // Check specific feed object relationship instead of entire map reference
-    const prevFeed = prev.feedsMap.get(prev.article.feedId);
-    const nextFeed = next.feedsMap.get(next.article.feedId);
-    if (prevFeed !== nextFeed) return false;
-
-    // Check header priority flag
-    if (prev.isFirst !== next.isFirst) return false;
-
-    return true;
-});
+export const ArticleCard = memo(ArticleCardComponent);

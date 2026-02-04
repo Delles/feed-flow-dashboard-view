@@ -1,6 +1,6 @@
 import { useState, useEffect, useTransition } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import AppSidebar from "@/components/AppSidebar";
 import { ArticleGrid } from "@/components/ArticleGrid";
 import { ChevronUp } from "lucide-react";
 import { useInfiniteArticles } from "@/hooks/useInfiniteArticles";
@@ -83,7 +83,7 @@ const Index = () => {
                 <AppSidebar
                     feeds={feeds}
                     articles={articles}
-                    onAddFeed={() => { }} // Placeholder, not implemented
+                    onOpenAddFeedDialog={() => { }} // Placeholder, not implemented
                     onRemoveFeed={() => { }} // Placeholder, not implemented
                     selectedFeed={selectedFeed}
                     onSelectFeed={onSelectFeedWrapped}
@@ -95,7 +95,7 @@ const Index = () => {
                     onToggleCategory={handleToggleCategory}
                 />
 
-                <div className="flex flex-col flex-1 w-full max-w-6xl mx-4 md:mx-8">
+                <div className="flex flex-col flex-1 w-full max-w-7xl">
                     <PageHeader
                         feeds={feeds}
                         selectedFeed={selectedFeed}
@@ -111,7 +111,7 @@ const Index = () => {
                         onAddFeed={() => { }}
                     />
 
-                    <main className="flex-1 p-6 pt-4 md:pt-6">
+                    <main className="flex-1 p-6 md:p-12">
                         <ErrorBoundary>
                             <ArticleGrid
                                 articles={displayedArticles}
@@ -127,10 +127,10 @@ const Index = () => {
                     {showScrollTop && (
                         <button
                             onClick={scrollToTop}
-                            className="fixed bottom-20 right-4 lg:hidden bg-primary text-primary-foreground shadow-lg rounded-full p-3"
+                            className="fixed bottom-10 right-10 bg-primary text-white w-14 h-14 rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center transition-all duration-500 hover:-translate-y-2 hover:scale-110 active:scale-95 z-50 group"
                             aria-label="Înapoi sus"
                         >
-                            <ChevronUp className="h-5 w-5" />
+                            <ChevronUp className="h-6 w-6 transition-transform duration-300 group-hover:-translate-y-1" />
                         </button>
                     )}
                 </div>

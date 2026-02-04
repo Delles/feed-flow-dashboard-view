@@ -35,15 +35,29 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
                         errorCount: 0, // Track feed-specific errors
                     } as RSSFeed;
 
-                    const updatedArticles: Article[] = articles.map((a, idx) => ({
-                        ...a,
-                        id: `${mockFeed.id}-${idx}`,
-                        feedId: mockFeed.id,
-                    }));
+                    const updatedArticles: Article[] = articles.map((a, index) => {
+                        // Generate a stable ID
+                        const uniqueString = a.url || a.title || `unknown-${index}`;
+                        // Simple hash function to ensure stable ID
+                        let hash = 0;
+                        for (let i = 0; i < uniqueString.length; i++) {
+                            const char = uniqueString.charCodeAt(i);
+                            hash = (hash << 5) - hash + char;
+                            hash = hash & hash;
+                        }
+                        const stableId = a.id || a.url || `${mockFeed.id}-${hash}`;
+
+                        return {
+                            ...a,
+                            id: stableId,
+                            feedId: mockFeed.id,
+                        };
+                    });
 
                     return { feed: updatedFeed, articles: updatedArticles };
                 } catch (error) {
-                    handleError(error, `Feed ${mockFeed.title}`);
+                    // Silently log background errors to avoid intrusive notifications
+                    handleError(error, `Feed ${mockFeed.title}`, true);
 
                     // Return fallback data on error
                     const fallbackFeed: RSSFeed = {
@@ -57,22 +71,33 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
                 }
             },
             // Enhanced query configuration
-            staleTime: 5 * 60 * 1000, // 5 minutes (reduced from 10)
-            gcTime: 60 * 60 * 1000, // 1 hour (increased from 30 minutes)
+            staleTime: 15 * 60 * 1000, // 15 minutes (increased from 5)
+            gcTime: 60 * 60 * 1000, // 1 hour
             retry: (failureCount, error) => {
-                // Don't retry on 4xx errors
-                if (error instanceof Error && error.message.includes('4')) {
+                // Check for HTTP status code from error properties
+                const status = (error as any)?.status || (error as any)?.response?.status || (error as any)?.statusCode;
+                if (typeof status === 'number' && status >= 400 && status < 600) {
                     return false;
                 }
-                // Retry up to 3 times for network errors
-                return failureCount < 3;
+
+                // Fallback: parse status from error message (e.g., "HTTP 404: Not Found")
+                if (error instanceof Error) {
+                    const match = error.message.match(/HTTP\s+(\d{3})/);
+                    const parsedStatus = match ? Number(match[1]) : null;
+                    if (parsedStatus && parsedStatus >= 400 && parsedStatus < 600) {
+                        return false;
+                    }
+                }
+
+                // If no HTTP status detected, allow retry for transient network errors
+                return failureCount < 2;
             },
-            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+            retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 30000),
             // Network-aware refetching
             refetchOnWindowFocus: false,
             refetchOnReconnect: true,
             // Enable background refetching
-            refetchInterval: 15 * 60 * 1000, // 15 minutes
+            refetchInterval: 30 * 60 * 1000, // 30 minutes (increased from 15)
             refetchIntervalInBackground: true,
         })),
     });
@@ -107,7 +132,7 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
     // Enhanced loading states
     const isInitialLoading = feeds.length === 0 && queryResults.some((qr) => qr.isLoading);
     const isFetching = queryResults.some((qr) => qr.isFetching);
-    const isError = queryResults.some((qr) => qr.error);
+    const isError = errorCount > 0 || queryResults.some((qr) => qr.error);
 
     // Enhanced refetch functions
     const refetch = useCallback(async () => {

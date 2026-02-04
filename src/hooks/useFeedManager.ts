@@ -2,6 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { useIncrementalFeeds } from "@/hooks/useIncrementalFeeds";
 import { Article, RSSFeed } from "@/types/rss";
 
+/**
+ * Hook to manage the lifecycle of RSS feeds and articles.
+ * Handles incremental loading, refreshing, and enabled/disabled states.
+ */
 export function useFeedManager() {
     const {
         feeds: loadedFeeds,
@@ -20,35 +24,35 @@ export function useFeedManager() {
         Record<string, boolean>
     >({});
 
+    // Tracks which IDs have already been processed into state to avoid duplicates
     const processedFeedIds = useRef(new Set<string>());
     const processedArticleIds = useRef(new Set<string>());
-    const isRefreshing = useRef(false);
 
-    // Track by length instead of object reference to avoid unnecessary re-runs
-    const feedsCount = loadedFeeds.length;
-    const articlesCount = loadedArticles.length;
-    const lastFeedId = loadedFeeds[loadedFeeds.length - 1]?.id;
-    const lastArticleId = loadedArticles[loadedArticles.length - 1]?.id;
+    // A version counter to force a full state replacement on refresh
+    const [refreshVersion, setRefreshVersion] = useState(0);
+    const lastVersionRef = useRef(0);
 
     useEffect(() => {
-        if (isRefreshing.current) {
-            // During refresh: replace all data instead of incremental add
-            const allFeeds = loadedFeeds;
-            const allArticles = loadedArticles;
+        const isNewRefreshCycle = refreshVersion > lastVersionRef.current;
 
-            if (allFeeds.length > 0) {
-                allFeeds.forEach((f) => processedFeedIds.current.add(f.id));
-                setFeeds(allFeeds);
+        if (isNewRefreshCycle) {
+            // Full refresh: Reset trackers and replace entire state
+            processedFeedIds.current.clear();
+            processedArticleIds.current.clear();
+
+            if (loadedFeeds.length > 0) {
+                loadedFeeds.forEach((f) => { processedFeedIds.current.add(f.id); });
+                setFeeds(loadedFeeds);
                 setEnabledFeeds((prev) => {
                     const updated = { ...prev };
-                    allFeeds.forEach((f) => {
+                    loadedFeeds.forEach((f) => {
                         if (!(f.id in updated)) updated[f.id] = true;
                     });
                     return updated;
                 });
                 setEnabledCategories((prev) => {
                     const updated = { ...prev };
-                    allFeeds.forEach((f) => {
+                    loadedFeeds.forEach((f) => {
                         const cat = f.category ?? "Altele";
                         if (!(cat in updated)) updated[cat] = true;
                     });
@@ -56,22 +60,19 @@ export function useFeedManager() {
                 });
             }
 
-            if (allArticles.length > 0) {
-                allArticles.forEach((a) =>
-                    processedArticleIds.current.add(a.id)
-                );
-                setArticles(
-                    allArticles.sort(
-                        (a, b) =>
-                            new Date(b.pubDate).getTime() -
-                            new Date(a.pubDate).getTime()
-                    )
-                );
+            if (loadedArticles.length > 0) {
+                loadedArticles.forEach((a) => {
+                    processedArticleIds.current.add(a.id);
+                });
+                setArticles([...loadedArticles]); // Already sorted in useIncrementalFeeds
             }
 
-            isRefreshing.current = false;
+            // Only mark the refresh cycle as complete after data has been processed
+            if (loadedFeeds.length > 0 || loadedArticles.length > 0) {
+                lastVersionRef.current = refreshVersion;
+            }
         } else {
-            // Normal operation: incremental loading
+            // Normal operation: Process only genuinely new items
             const newFeeds = loadedFeeds.filter(
                 (f) => !processedFeedIds.current.has(f.id)
             );
@@ -80,7 +81,7 @@ export function useFeedManager() {
             );
 
             if (newFeeds.length > 0) {
-                newFeeds.forEach((f) => processedFeedIds.current.add(f.id));
+                newFeeds.forEach((f) => { processedFeedIds.current.add(f.id); });
                 setFeeds((prev) => [...prev, ...newFeeds]);
                 setEnabledFeeds((prev) => {
                     const updated = { ...prev };
@@ -100,9 +101,9 @@ export function useFeedManager() {
             }
 
             if (newArticles.length > 0) {
-                newArticles.forEach((a) =>
-                    processedArticleIds.current.add(a.id)
-                );
+                newArticles.forEach((a) => {
+                    processedArticleIds.current.add(a.id);
+                });
                 setArticles((prev) =>
                     [...prev, ...newArticles].sort(
                         (a, b) =>
@@ -112,7 +113,7 @@ export function useFeedManager() {
                 );
             }
         }
-    }, [feedsCount, articlesCount, lastFeedId, lastArticleId]);
+    }, [loadedFeeds, loadedArticles, refreshVersion]);
 
     const handleToggleFeed = (feedId: string, enabled: boolean) => {
         setEnabledFeeds((prev) => ({ ...prev, [feedId]: enabled }));
@@ -133,16 +134,24 @@ export function useFeedManager() {
         });
     };
 
+    /**
+     * Trigger a fresh fetch of all feeds and replace current state.
+     */
     const handleRefresh = async () => {
-        // Set refresh flag to change behavior in useEffect
-        isRefreshing.current = true;
+        try {
+            // Clear current display state to show loading skeletons/fresh start
+            setArticles([]);
+            setFeeds([]);
+            processedFeedIds.current.clear();
+            processedArticleIds.current.clear();
 
-        // Clear processed IDs to allow fresh data
-        processedFeedIds.current.clear();
-        processedArticleIds.current.clear();
+            // Increment version to trigger the 'isNewRefreshCycle' block in useEffect
+            setRefreshVersion(v => v + 1);
 
-        // Trigger the refetch - data will be handled differently due to isRefreshing flag
-        await refetch();
+            await refetch();
+        } catch (error) {
+            console.error("Refresh failed:", error);
+        }
     };
 
     return {

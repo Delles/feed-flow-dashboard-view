@@ -106,22 +106,21 @@ export function PageHeader({
 
     return (
         <header
-            className="sticky top-0 z-10 flex flex-col gap-2 px-4 py-2 bg-background/95 border-b backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6 min-h-[96px]"
-            style={{ containIntrinsicSize: "96px", contentVisibility: "auto" }}
+            className="sticky top-0 z-30 flex flex-col bg-background/80 backdrop-blur-xl border-b border-border/40 px-6 py-3"
         >
-            <div className="flex items-center gap-4 h-12">
-                <SidebarTrigger
-                    className="lg:hidden"
-                    aria-label="Toggle navigation sidebar"
-                />
-                <div className="flex-1">
-                    <SearchInput
-                        onSearch={onSearch}
-                        placeholder="Caută articole..."
-                        isLoading={isSearching}
-                    />
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                    <SidebarTrigger className="lg:hidden hover:bg-accent rounded-xl transition-colors" />
+                    <div>
+                        <h1 className="font-serif font-black text-xl tracking-tight text-foreground leading-none">
+                            Feed <span className="text-primary italic">Flow</span>
+                        </h1>
+                        <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 leading-none mt-1">
+                            Panou Digital
+                        </p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                     <RefreshButton
                         onRefresh={onRefresh}
                         isRefreshing={isRefreshing}
@@ -129,41 +128,24 @@ export function PageHeader({
                     <ThemeToggle />
                 </div>
             </div>
-            <div className="flex flex-col items-start gap-2 md:flex-row md:flex-nowrap md:items-center md:justify-between">
-                <nav className="hidden md:block" aria-label="Breadcrumb navigation">
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            {breadcrumbItems.map((item, index) => (
-                                <div key={item.label} className="flex items-center">
-                                    {index > 0 && <BreadcrumbSeparator />}
-                                    <BreadcrumbItem>
-                                        {item.isActive ? (
-                                            <BreadcrumbPage className="font-semibold">
-                                                {item.label}
-                                            </BreadcrumbPage>
-                                        ) : (
-                                            <BreadcrumbLink href={item.href} className="hover:text-foreground">
-                                                {item.label}
-                                            </BreadcrumbLink>
-                                        )}
-                                    </BreadcrumbItem>
-                                </div>
-                            ))}
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </nav>
-                <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-muted-foreground">
-                    <Badge variant="outline" className="border-primary/50 bg-primary/10 text-primary font-semibold">
-                        {activeFilterName}
-                    </Badge>
-                    {searchQuery && (
-                        <Badge variant="secondary" className="font-normal">
-                            "{searchQuery}"
-                        </Badge>
-                    )}
-                    <span className="font-medium text-foreground/80 whitespace-nowrap text-right min-w-[6.5rem] tabular-nums">
-                        {totalAvailable} articole
-                    </span>
+            
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <div className="flex-1">
+                    <SearchInput
+                        onSearch={onSearch}
+                        placeholder="Caută în arhivă..."
+                        isLoading={isSearching}
+                    />
+                </div>
+                <div className="flex items-center gap-6 border-l border-border/30 pl-6 hidden md:flex">
+                    <div className="flex flex-col">
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Filtru</span>
+                        <span className="font-serif font-black text-sm text-foreground/80 truncate max-w-[120px]">{activeFilterName}</span>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Total</span>
+                        <span className="font-serif font-black text-sm text-foreground/80 tabular-nums">{totalAvailable}</span>
+                    </div>
                 </div>
             </div>
         </header>

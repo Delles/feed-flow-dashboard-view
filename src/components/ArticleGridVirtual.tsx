@@ -84,54 +84,38 @@ export function ArticleGridVirtual({
 
     if (!isMobile) {
         return (
-            <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
+            <div className="space-y-16">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 px-2">
                     {articles.map((article, index) => (
                         <ArticleCard
                             key={article.id}
                             article={article}
                             feedsMap={feedsMap}
                             isFirst={index === 0}
+                            index={index}
                         />
                     ))}
                 </div>
 
                 {hasMore && (
-                    <>
-                        {isLoading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
-                                {Array.from({ length: 3 }).map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className="space-y-3 h-[460px] flex flex-col overflow-hidden"
-                                    >
-                                        <Skeleton className="aspect-video w-full rounded-lg" />
-                                        <div className="space-y-2 p-2 flex-grow">
-                                            <Skeleton className="h-4 w-3/4" />
-                                            <Skeleton className="h-3 w-1/2" />
-                                            <Skeleton className="h-3 w-full" />
-                                            <Skeleton className="h-3 w-2/3" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div ref={desktopLoadMoreRef} className="h-20" />
-                        )}
-                    </>
+                    <div ref={desktopLoadMoreRef} className="py-20 flex justify-center">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
+                                Se încarcă mai multe știri...
+                            </p>
+                        </div>
+                    </div>
                 )}
 
                 {!hasMore && articles.length > 0 && (
-                    <div className="text-center py-8 text-sm text-muted-foreground border-t mx-4">
-                        <p>
-                            Afișate toate articolele disponibile ({totalAvailable})
+                    <div className="text-center py-24 border-t border-border/30 mt-20 mx-4">
+                        <h2 className="font-serif font-black text-3xl text-foreground/80 mb-3">
+                            Ești la curent cu tot
+                        </h2>
+                        <p className="text-sm font-medium text-muted-foreground/60">
+                            Ai parcurs toate articolele disponibile.
                         </p>
-                        {articles.length >= 500 && (
-                            <p className="mt-2 text-xs">
-                                Pentru performanță optimă, se afișează maximum 500
-                                de articole.
-                            </p>
-                        )}
                     </div>
                 )}
             </div>
