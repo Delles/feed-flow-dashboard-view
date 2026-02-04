@@ -6,11 +6,11 @@ export interface ParsedRSSFeed {
   articles: Article[];
 }
 
-// Multiple CORS proxy services as fallbacks
+// Multiple CORS proxy services as fallbacks - reordered for reliability
 const CORS_PROXIES = [
-  "https://corsproxy.io/?",
   "https://api.codetabs.com/v1/proxy?quest=",
   "https://api.allorigins.win/get?url=",
+  "https://corsproxy.io/?",
   "https://cors-anywhere.herokuapp.com/"
 ];
 
@@ -38,8 +38,9 @@ async function fetchWithProxy(url: string): Promise<string> {
     console.log(`Trying proxy ${i + 1}/${CORS_PROXIES.length}:`, proxy);
     
     try {
-      const proxyUrl = `${proxy}${encodeURIComponent(url)}`;
-      const response = await fetch(proxyUrl);
+      const cacheBuster = `&_cb=${Date.now()}`;
+      const proxyUrl = `${proxy}${encodeURIComponent(url)}${cacheBuster}`;
+      const response = await fetch(proxyUrl, { cache: 'no-store' });
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -58,7 +59,8 @@ async function fetchWithProxy(url: string): Promise<string> {
       
       // Try parsing as JSON (for proxies that wrap the response)
       try {
-        const data = await response.json();
+        const clonedResponse = response.clone();
+        const data = await clonedResponse.json();
         
         // Different proxy services return data in different formats
         const xmlText = data.contents || data.body || data.data || data;
@@ -68,7 +70,7 @@ async function fetchWithProxy(url: string): Promise<string> {
           return xmlText;
         }
       } catch (jsonError) {
-        // If JSON parsing fails, try as text
+        // If JSON parsing fails, try as text (original response is still readable)
         const textData = await response.text();
         if (textData.includes('<rss') || textData.includes('<?xml')) {
           console.log("Successfully fetched RSS data as text with proxy:", proxy);
@@ -187,7 +189,7 @@ export async function parseRSSFeed(url: string): Promise<ParsedRSSFeed> {
       }
       
       return {
-        id: `${feed.id}-${index}`,
+        id: link || `${feed.id}-${index}`,
         title: title.trim(),
         description: cleanDescription,
         url: link,

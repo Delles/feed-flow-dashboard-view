@@ -7,8 +7,9 @@ import {
 } from "@/components/ui/sidebar";
 import { Accordion } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings, HelpCircle, Eye } from "lucide-react";
+import { Plus, Rss } from "lucide-react";
 import { RSSFeed, Article } from "@/types/rss";
+import { motion } from "framer-motion";
 import {
     SidebarHeaderStats,
     AllArticlesMenuItem,
@@ -132,119 +133,98 @@ export function AppSidebar({
     }, [articles]);
 
     return (
-        <Sidebar className="border-r border-border no-scrollbar sidebar-offset-left">
-            <SidebarHeader>
+        <Sidebar className="border-r border-border/40 bg-background/50 backdrop-blur-2xl">
+            <SidebarHeader className="p-0">
+                <div className="p-6 pb-4">
+                    <div className="flex items-center gap-3 mb-4">
+                        <motion.div 
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20"
+                        >
+                            <Rss className="w-4.5 h-4.5 text-white" />
+                        </motion.div>
+                        <div>
+                            <h2 className="font-serif font-black text-lg tracking-tight text-foreground leading-none">
+                                Feed <span className="text-primary italic">Flow</span>
+                            </h2>
+                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mt-1">
+                                Ediția Digitală
+                            </p>
+                        </div>
+                    </div>
+                </div>
                 <SidebarHeaderStats
                     feedCount={feeds.length}
                     articleCount={articles.length}
                 />
             </SidebarHeader>
 
-            <SidebarContent className="px-2 py-2 overflow-y-auto no-scrollbar">
-                {/* All Articles Section */}
-                <div className="mb-4 px-1">
-                    <AllArticlesMenuItem
-                        articleCount={articles.length}
-                        feedCount={feeds.length}
-                        isActive={!hasActiveFilter}
-                        hasActiveFilter={hasActiveFilter}
-                        onSelectAll={() => {
-                            onSelectFeed(null);
-                            onSelectCategory(null);
-                        }}
-                    />
-                </div>
-
-                {/* Categories Section */}
-                <div className="space-y-1">
-                    <div className="px-3 py-2 mb-1">
-                        <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                Categorii
-                            </h3>
-                            <div className="h-px flex-1 bg-border"></div>
-                            <span className="text-xs text-muted-foreground font-medium">
-                                {categories.length}
-                            </span>
-                        </div>
-                        {/* Legend */}
-                        <div className="flex items-center justify-end gap-3 text-[10px] text-muted-foreground/70 uppercase tracking-wide">
-                            <span className="flex items-center gap-1">
-                                <span className="w-3 h-3 rounded bg-muted flex items-center justify-center text-[8px]">
-                                    3
-                                </span>
-                                Surse
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <Eye className="h-3 w-3" />
-                                Activ
-                            </span>
-                        </div>
+            <SidebarContent className="px-3 py-6 no-scrollbar">
+                <div className="space-y-10">
+                    <div className="px-1">
+                        <AllArticlesMenuItem
+                            articleCount={articles.length}
+                            feedCount={feeds.length}
+                            isActive={!hasActiveFilter}
+                            hasActiveFilter={hasActiveFilter}
+                            onSelectAll={() => {
+                                onSelectFeed(null);
+                                onSelectCategory(null);
+                            }}
+                        />
                     </div>
 
-                    <Accordion
-                        type="multiple"
-                        value={openCategories}
-                        onValueChange={setOpenCategories}
-                        className="space-y-1"
-                    >
-                        {categories.map((category) => (
-                            <CategoryAccordion
-                                key={category}
-                                category={category}
-                                feeds={feedsByCategory[category]}
-                                articleCounts={articleCountsByFeed}
-                                selectedFeed={selectedFeed}
-                                selectedCategory={selectedCategory}
-                                enabledFeeds={enabledFeeds}
-                                isCategoryEnabled={
-                                    enabledCategories[category] ?? true
-                                }
-                                hasActiveFilter={hasActiveFilter}
-                                onSelectFeed={onSelectFeed}
-                                onSelectCategory={onSelectCategory}
-                                onToggleFeed={onToggleFeed}
-                                onToggleCategory={onToggleCategory}
-                            />
-                        ))}
-                    </Accordion>
+                    <div className="space-y-4">
+                        <div className="px-4 flex items-center justify-between">
+                            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-foreground/70 dark:text-foreground/60">
+                                Surse pe Categorii
+                            </h3>
+                            <div className="w-10 h-px bg-primary/40" />
+                        </div>
+
+                        <Accordion
+                            type="multiple"
+                            value={openCategories}
+                            onValueChange={setOpenCategories}
+                            className="space-y-1"
+                        >
+                            {categories.map((category) => (
+                                <CategoryAccordion
+                                    key={category}
+                                    category={category}
+                                    feeds={feedsByCategory[category]}
+                                    articleCounts={articleCountsByFeed}
+                                    selectedFeed={selectedFeed}
+                                    selectedCategory={selectedCategory}
+                                    enabledFeeds={enabledFeeds}
+                                    isCategoryEnabled={
+                                        enabledCategories[category] ?? true
+                                    }
+                                    hasActiveFilter={hasActiveFilter}
+                                    openCategories={openCategories}
+                                    onSelectFeed={onSelectFeed}
+                                    onSelectCategory={onSelectCategory}
+                                    onToggleFeed={onToggleFeed}
+                                    onToggleCategory={onToggleCategory}
+                                />
+                            ))}
+                        </Accordion>
+                    </div>
                 </div>
             </SidebarContent>
 
-            {/* Footer Actions */}
-            <SidebarFooter className="border-t border-sidebar-border/50 p-3 mt-auto">
-                <div className="space-y-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-start gap-2 h-9 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                        onClick={() => onAddFeed?.({} as RSSFeed, [])} // Placeholder for dialog trigger
-                        disabled={!onAddFeed}
-                    >
-                        <Plus className="h-3.5 w-3.5" />
-                        Adaugă sursă RSS
-                    </Button>
-
-                    <div className="flex gap-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex-1 justify-center gap-1.5 h-8 text-xs hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                        >
-                            <Settings className="h-3.5 w-3.5" />
-                            Setări
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex-1 justify-center gap-1.5 h-8 text-xs hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                        >
-                            <HelpCircle className="h-3.5 w-3.5" />
-                            Ajutor
-                        </Button>
-                    </div>
-                </div>
+            <SidebarFooter className="p-6 border-t border-border/40 bg-secondary/10 backdrop-blur-md">
+                <Button
+                    variant="outline"
+                    className="w-full rounded-2xl font-bold uppercase tracking-widest text-[9px] h-12 bg-background/50 border-border/40 hover:bg-primary hover:text-white hover:border-primary transition-all duration-500 shadow-sm hover:shadow-primary/20 group"
+                    onClick={() => onAddFeed?.({} as RSSFeed, [])}
+                >
+                    <Plus className="mr-2 h-3.5 w-3.5 transition-transform group-hover:rotate-90" />
+                    Adaugă Sursă
+                </Button>
             </SidebarFooter>
         </Sidebar>
     );
 }
+export default AppSidebar;

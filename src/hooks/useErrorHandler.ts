@@ -56,7 +56,7 @@ export class AppError extends Error {
  * Hook for handling errors with user-friendly messages and recovery actions
  */
 export function useErrorHandler() {
-    const handleError = useCallback((error: unknown, context?: string) => {
+    const handleError = useCallback((error: unknown, context?: string, silent = false) => {
         let appError: AppError;
 
         // Convert unknown error to AppError
@@ -64,7 +64,7 @@ export function useErrorHandler() {
             appError = error;
         } else if (error instanceof Error) {
             // Try to determine error type from common patterns
-            if (error.message.includes('fetch') || error.message.includes('network')) {
+            if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('CORS') || error.message.includes('proxy')) {
                 appError = new AppError(
                     error.message,
                     ErrorType.NETWORK,
@@ -101,19 +101,20 @@ export function useErrorHandler() {
             console.error(`Error in ${context || 'unknown context'}:`, appError);
         }
 
-        // Show user-friendly toast notification
-        toast.error(appError.userMessage, {
-            description: appError.retryable ? 'You can try again' : undefined,
-            action: appError.retryable ? {
-                label: 'Retry',
-                onClick: () => {
-                    // Emit a custom event that components can listen to for retry logic
-                    window.dispatchEvent(new CustomEvent('retry-error', {
-                        detail: { context, originalError: appError }
-                    }));
-                }
-            } : undefined,
-        });
+        // Show user-friendly toast notification only if not silent
+        if (!silent) {
+            toast.error(appError.userMessage, {
+                description: appError.retryable ? 'Puteți încerca din nou' : undefined,
+                action: appError.retryable ? {
+                    label: 'Reîncercare',
+                    onClick: () => {
+                        window.dispatchEvent(new CustomEvent('retry-error', {
+                            detail: { context, originalError: appError }
+                        }));
+                    }
+                } : undefined,
+            });
+        }
 
         return appError;
     }, []);

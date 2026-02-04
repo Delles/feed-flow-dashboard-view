@@ -67,34 +67,37 @@ export function SearchInput({
     };
 
     return (
-        <div className="relative w-full max-w-xl mx-auto">
-            {isLoading ? (
-                <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground animate-spin" />
-            ) : (
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            )}
+        <div className="relative w-full max-w-2xl">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {isLoading ? (
+                    <Loader2 className="size-3.5 text-primary animate-spin" />
+                ) : (
+                    <Search className="size-3.5 text-muted-foreground/50" />
+                )}
+            </div>
             <Input
                 ref={inputRef}
                 type="text"
                 placeholder={placeholder}
                 value={query}
                 onChange={handleInputChange}
-                className="pl-10 pr-14 sm:pr-20"
+                className="h-10 pl-10 pr-24 bg-secondary/20 border-none rounded-full font-medium text-xs placeholder:text-muted-foreground/40 focus-visible:ring-2 focus-visible:ring-primary/10 transition-all"
             />
-            {query ? (
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearSearch}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 size-6 p-0"
-                >
-                    <X className="h-3 w-3" />
-                </Button>
-            ) : (
-                <kbd className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground sm:flex">
-                    <span className="text-xs">⌘</span>K
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {query && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearSearch}
+                        className="size-6 p-0 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                    >
+                        <X className="h-3 w-3" />
+                    </Button>
+                )}
+                <kbd className="hidden h-5 select-none items-center gap-1 rounded-full border border-border bg-background px-2 font-sans text-[9px] font-bold text-muted-foreground/40 sm:flex">
+                    ⌘ K
                 </kbd>
-            )}
+            </div>
         </div>
     );
 }

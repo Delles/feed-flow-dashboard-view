@@ -65,107 +65,43 @@ export function ArticleGridInfinite({
     }
 
     return (
-        <div
-            className="space-y-6"
-            style={{
-                containIntrinsicSize: "1px 1px",
-                contentVisibility: "auto",
-            }}
-        >
-            {!isMobile ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {articles.map((article, index) => (
-                        <ArticleCard
-                            key={article.id}
-                            article={article}
-                            feedsMap={feedsMap}
-                            isFirst={index === 0}
-                        />
-                    ))}
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {articles.map((article, index) => (
-                        <ArticleCard
-                            key={article.id}
-                            article={article}
-                            feedsMap={feedsMap}
-                            isFirst={index === 0}
-                        />
-                    ))}
-                </div>
-            )}
+        <div className="space-y-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+                {articles.map((article, index) => (
+                    <ArticleCard
+                        key={article.id}
+                        article={article}
+                        feedsMap={feedsMap}
+                        isFirst={index === 0}
+                        index={index}
+                    />
+                ))}
+            </div>
 
             {hasMore && (
-                <div ref={loadMoreRef} className="py-8">
-                    {isLoading ? (
-                        <>
-                            {!isMobile ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {Array.from({ length: 3 }).map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className="space-y-3 h-[460px] flex flex-col overflow-hidden"
-                                        >
-                                            <Skeleton className="aspect-video w-full rounded-lg" />
-                                            <div className="space-y-2 p-2 flex-grow">
-                                                <Skeleton className="h-4 w-3/4" />
-                                                <Skeleton className="h-3 w-1/2" />
-                                                <Skeleton className="h-3 w-full" />
-                                                <Skeleton className="h-3 w-2/3" />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {Array.from({ length: 2 }).map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className="bg-card rounded-lg border p-4 space-y-3 h-[460px] flex flex-col overflow-hidden"
-                                        >
-                                            <Skeleton className="aspect-video w-full rounded-lg" />
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Skeleton className="h-4 w-4 rounded" />
-                                                    <Skeleton className="h-3 w-20" />
-                                                    <Skeleton className="h-3 w-16" />
-                                                </div>
-                                                <Skeleton className="h-5 w-full" />
-                                                <Skeleton className="h-5 w-3/4" />
-                                                <div className="space-y-1">
-                                                    <Skeleton className="h-3 w-full" />
-                                                    <Skeleton className="h-3 w-5/6" />
-                                                    <Skeleton className="h-3 w-2/3" />
-                                                </div>
-                                                <Skeleton className="h-4 w-24" />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <div className="text-center">
-                            <div className="text-sm text-muted-foreground">
-                                Se încarcă mai multe articole...
-                            </div>
-                        </div>
-                    )}
+                <div ref={loadMoreRef} className="py-20 flex justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
+                            Se încarcă articole noi...
+                        </p>
+                    </div>
                 </div>
             )}
 
             {!hasMore && articles.length > 0 && (
-                <div className="text-center py-8 text-sm text-muted-foreground border-t">
-                    <p>
-                        Afișate toate articolele disponibile ({totalAvailable})
+                <div className="text-center py-24 border-t border-border/30 mt-20">
+                    <h2 className="font-serif font-black text-3xl text-foreground/80 mb-3">
+                        Ești la curent cu tot
+                    </h2>
+                    <p className="text-sm font-medium text-muted-foreground/60 max-w-xs mx-auto">
+                        Ai parcurs toate cele {totalAvailable} articole disponibile în acest moment.
                     </p>
-                    {articles.length >= 500 && (
-                        <p className="mt-2 text-xs">
-                            Pentru performanță optimă, se afișează maximum 500
-                            de articole.
-                        </p>
-                    )}
+                    <div className="mt-10 flex justify-center">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary/30 mx-1" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary/30 mx-1" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary/30 mx-1" />
+                    </div>
                 </div>
             )}
         </div>

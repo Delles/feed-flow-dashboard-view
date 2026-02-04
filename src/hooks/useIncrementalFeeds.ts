@@ -35,15 +35,16 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
                         errorCount: 0, // Track feed-specific errors
                     } as RSSFeed;
 
-                    const updatedArticles: Article[] = articles.map((a, idx) => ({
+                    const updatedArticles: Article[] = articles.map((a) => ({
                         ...a,
-                        id: `${mockFeed.id}-${idx}`,
+                        id: a.url || `${mockFeed.id}-${Math.random()}`,
                         feedId: mockFeed.id,
                     }));
 
                     return { feed: updatedFeed, articles: updatedArticles };
                 } catch (error) {
-                    handleError(error, `Feed ${mockFeed.title}`);
+                    // Silently log background errors to avoid intrusive notifications
+                    handleError(error, `Feed ${mockFeed.title}`, true);
 
                     // Return fallback data on error
                     const fallbackFeed: RSSFeed = {
@@ -57,22 +58,21 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
                 }
             },
             // Enhanced query configuration
-            staleTime: 5 * 60 * 1000, // 5 minutes (reduced from 10)
-            gcTime: 60 * 60 * 1000, // 1 hour (increased from 30 minutes)
+            staleTime: 15 * 60 * 1000, // 15 minutes (increased from 5)
+            gcTime: 60 * 60 * 1000, // 1 hour
             retry: (failureCount, error) => {
-                // Don't retry on 4xx errors
-                if (error instanceof Error && error.message.includes('4')) {
+                // Don't retry on 4xx or 5xx errors to be kind to proxies
+                if (error instanceof Error && (error.message.includes('4') || error.message.includes('5'))) {
                     return false;
                 }
-                // Retry up to 3 times for network errors
-                return failureCount < 3;
+                return failureCount < 2; // Reduced retries
             },
-            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+            retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 30000),
             // Network-aware refetching
             refetchOnWindowFocus: false,
             refetchOnReconnect: true,
             // Enable background refetching
-            refetchInterval: 15 * 60 * 1000, // 15 minutes
+            refetchInterval: 30 * 60 * 1000, // 30 minutes (increased from 15)
             refetchIntervalInBackground: true,
         })),
     });

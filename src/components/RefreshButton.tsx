@@ -1,6 +1,11 @@
 import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface RefreshButtonProps {
     onRefresh: () => Promise<void>;
@@ -31,21 +36,28 @@ export function RefreshButton({
     };
 
     return (
-        <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="h-9 w-9 rounded-lg hover:bg-accent hover:text-accent-foreground group"
-            aria-label="Actualizează fluxurile RSS"
-        >
-            <RotateCcw
-                className={`h-4 w-4 transition-all duration-300 ${
-                    isRefreshing
-                        ? "animate-spin text-blue-500"
-                        : "group-hover:-rotate-180"
-                }`}
-            />
-        </Button>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="h-10 w-10 rounded-full bg-secondary/50 hover:bg-primary hover:text-white transition-all duration-300 group"
+                    aria-label="Actualizează Fluxurile"
+                >
+                    <RotateCcw
+                        className={`h-4 w-4 transition-all duration-500 ${
+                            isRefreshing
+                                ? "animate-spin"
+                                : "group-hover:rotate-180"
+                        }`}
+                    />
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-foreground text-background font-bold text-[10px] uppercase tracking-widest px-3 py-2 rounded-xl border-none mt-2">
+                Actualizează Știrile
+            </TooltipContent>
+        </Tooltip>
     );
 }

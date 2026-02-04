@@ -12,7 +12,7 @@ interface AsyncWrapperProps<T> {
     loading: boolean;
     error: unknown;
     loadingComponent?: React.ReactNode;
-    errorComponent?: React.ReactNode;
+    errorComponent?: React.ElementType<{ error: unknown; onRetry?: () => void }>;
     emptyComponent?: React.ReactNode;
     retry?: () => void;
     children: (data: T) => React.ReactNode;

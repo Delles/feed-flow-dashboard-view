@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { ChevronDown, Eye, EyeOff, Rss } from "lucide-react";
+import { ChevronDown, Eye, EyeOff } from "lucide-react";
 import {
     AccordionContent,
     AccordionItem,
@@ -7,6 +7,12 @@ import {
 import { RSSFeed } from "@/types/rss";
 import { FeedListItem } from "./FeedListItem";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import { motion } from "framer-motion";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CategoryAccordionProps {
     category: string;
@@ -17,6 +23,7 @@ interface CategoryAccordionProps {
     enabledFeeds: Record<string, boolean>;
     isCategoryEnabled: boolean;
     hasActiveFilter: boolean;
+    openCategories: string[];
     onSelectFeed: (feedId: string | null) => void;
     onSelectCategory: (category: string | null) => void;
     onToggleFeed: (feedId: string, enabled: boolean) => void;
@@ -32,19 +39,14 @@ function CategoryAccordionComponent({
     enabledFeeds,
     isCategoryEnabled,
     hasActiveFilter,
+    openCategories,
     onSelectFeed,
     onSelectCategory,
     onToggleFeed,
     onToggleCategory,
 }: CategoryAccordionProps) {
     const isCategorySelected = selectedCategory === category;
-    const isFeedInThisCategorySelected = feeds.some(
-        (f) => f.id === selectedFeed
-    );
-    const isGroupActive = isCategorySelected || isFeedInThisCategorySelected;
-
-    // Determine if this category should be dimmed
-    const shouldDimCategory = hasActiveFilter && !isGroupActive;
+    const isOpen = openCategories.includes(category);
 
     // Determine if feeds in this category should be dimmed
     const shouldDimFeeds = hasActiveFilter && !isCategorySelected;
@@ -52,127 +54,100 @@ function CategoryAccordionComponent({
     return (
         <AccordionItem
             value={category}
-            className={`border-none transition-all duration-200 mb-1 ${!isCategoryEnabled
-                    ? "opacity-40"
-                    : shouldDimCategory
-                        ? "opacity-50"
-                        : "opacity-100"
-                }`}
+            className={`border-none mb-1 transition-all duration-500 ${
+                !isCategoryEnabled ? "opacity-30 grayscale px-2" : "opacity-100"
+            }`}
         >
-            <div className="px-1">
-                <div
-                    className={`rounded-lg border transition-all duration-200 ${isCategorySelected
-                            ? "bg-sidebar-primary/5 border-sidebar-primary/30"
-                            : "bg-card border-border hover:border-sidebar-primary/20"
-                        }`}
+            <div
+                className={`flex items-center gap-1 rounded-xl transition-all duration-500 group/cat ${
+                    isCategorySelected ? "bg-primary/5 shadow-sm ring-1 ring-primary/10" : "hover:bg-accent/20"
+                }`}
+            >
+                <button
+                    onClick={() => {
+                        if (!isCategoryEnabled) return;
+                        if (selectedCategory === category) {
+                            onSelectCategory(null);
+                        } else {
+                            onSelectCategory(category);
+                        }
+                    }}
+                    className={`flex-1 text-left font-serif font-black text-[15px] px-4 py-2.5 rounded-lg transition-colors truncate ${
+                        isCategorySelected ? "text-primary" : "text-foreground/90 dark:text-foreground/80 group-hover/cat:text-foreground"
+                    }`}
                 >
-                    {/* Unified Category Header */}
-                    <div className="flex items-center gap-2 px-3 py-2">
-                        {/* Category Icon & Name - Clickable to filter */}
-                        <button
-                            onClick={() => {
-                                if (!isCategoryEnabled) return;
-                                if (selectedCategory === category) {
-                                    onSelectCategory(null);
-                                } else {
-                                    onSelectCategory(category);
-                                }
-                            }}
-                            className={`flex items-center gap-2 flex-1 min-w-0 focus-ring rounded transition-all duration-200 ${!isCategoryEnabled
-                                    ? "cursor-not-allowed"
-                                    : "cursor-pointer"
+                    {category}
+                </button>
+
+                <div className="flex items-center gap-0.5 pr-2 transition-opacity duration-300">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleCategory(category, !isCategoryEnabled);
+                                }}
+                                className={`p-1.5 rounded-lg transition-all duration-300 ${
+                                    isCategoryEnabled ? "text-primary/60 hover:text-primary hover:bg-primary/10" : "text-muted-foreground/40 dark:text-foreground/30 hover:text-muted-foreground hover:bg-muted"
                                 }`}
-                        >
-                            <div
-                                className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-200 ${isCategorySelected
-                                        ? "bg-sidebar-primary/20"
-                                        : "bg-muted"
-                                    }`}
                             >
-                                {feeds[0]?.favicon ? (
-                                    <span className="text-xs">
-                                        {feeds[0].favicon}
-                                    </span>
+                                {isCategoryEnabled ? (
+                                    <Eye className="h-3.5 w-3.5" />
                                 ) : (
-                                    <Rss
-                                        className={`h-3 w-3 ${isCategorySelected
-                                                ? "text-sidebar-primary"
-                                                : "text-muted-foreground"
-                                            }`}
-                                    />
+                                    <EyeOff className="h-3.5 w-3.5" />
                                 )}
-                            </div>
-                            <span
-                                className={`text-sm font-medium truncate transition-colors duration-200 ${isCategorySelected
-                                        ? "text-sidebar-primary"
-                                        : "text-foreground"
-                                    }`}
-                            >
-                                {category}
-                            </span>
-                        </button>
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="bg-foreground text-background font-bold text-[10px] uppercase tracking-widest px-3 py-2 rounded-xl border-none">
+                            {isCategoryEnabled ? "Dezactivează Categoria" : "Activează Categoria"}
+                        </TooltipContent>
+                    </Tooltip>
 
-                        {/* Feed Count */}
-                        <span
-                            className={`text-xs font-medium px-2 py-0.5 rounded transition-colors duration-200 ${isCategorySelected
-                                    ? "text-sidebar-primary bg-sidebar-primary/10"
-                                    : "text-muted-foreground bg-muted"
-                                }`}
-                        >
-                            {feeds.length}
-                        </span>
-
-                        {/* Toggle Visibility */}
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onToggleCategory(category, !isCategoryEnabled);
-                            }}
-                            className="p-1 hover:bg-sidebar-primary/10 rounded transition-all duration-200 focus-ring"
-                            title={
-                                isCategoryEnabled
-                                    ? "Ascunde categoria"
-                                    : "Arată categoria"
-                            }
-                        >
-                            {isCategoryEnabled ? (
-                                <Eye className="h-4 w-4 text-sidebar-primary" />
-                            ) : (
-                                <EyeOff className="h-4 w-4 text-muted-foreground/50" />
-                            )}
-                        </button>
-
-                        {/* Expand/Collapse Accordion */}
-                        <AccordionPrimitive.Trigger className="p-1 hover:bg-sidebar-primary/10 rounded transition-all duration-200 focus-ring group">
-                            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                        </AccordionPrimitive.Trigger>
-                    </div>
-
-                    {/* Feed List */}
-                    <AccordionContent className="px-2 pb-2">
-                        <div className="space-y-1 pt-1">
-                            {feeds.map((feed) => (
-                                <FeedListItem
-                                    key={feed.id}
-                                    feed={feed}
-                                    articleCount={articleCounts[feed.id] ?? 0}
-                                    isSelected={selectedFeed === feed.id}
-                                    isFeedEnabled={
-                                        enabledFeeds[feed.id] ?? true
-                                    }
-                                    isCategoryEnabled={isCategoryEnabled}
-                                    shouldDim={
-                                        shouldDimFeeds &&
-                                        selectedFeed !== feed.id
-                                    }
-                                    onSelectFeed={onSelectFeed}
-                                    onToggleFeed={onToggleFeed}
-                                />
-                            ))}
-                        </div>
-                    </AccordionContent>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <AccordionPrimitive.Trigger className="p-1.5 rounded-lg text-muted-foreground/60 hover:text-foreground hover:bg-accent transition-all duration-300 group/trig">
+                                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-500 ${isOpen ? "rotate-180 text-primary" : "rotate-0"}`} />
+                            </AccordionPrimitive.Trigger>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="bg-foreground text-background font-bold text-[10px] uppercase tracking-widest px-3 py-2 rounded-xl border-none">
+                            {isOpen ? "Ascunde Sursele" : "Vezi Sursele"}
+                        </TooltipContent>
+                    </Tooltip>
                 </div>
+                
+                {isCategorySelected && !openCategories.includes(category) && (
+                    <motion.div 
+                        layoutId="active-indicator"
+                        className="absolute left-0 w-1 h-6 bg-primary rounded-full"
+                    />
+                )}
             </div>
+
+            <AccordionContent className="pt-2 pl-4">
+                <div className="space-y-1 relative">
+                    <div className="absolute left-4 top-0 bottom-4 w-px bg-gradient-to-b from-primary/20 via-primary/10 to-transparent" />
+                    <div className="pl-6 space-y-1">
+                        {feeds.map((feed) => (
+                            <FeedListItem
+                                key={feed.id}
+                                feed={feed}
+                                articleCount={articleCounts[feed.id] ?? 0}
+                                isSelected={selectedFeed === feed.id}
+                                isFeedEnabled={
+                                    enabledFeeds[feed.id] ?? true
+                                }
+                                isCategoryEnabled={isCategoryEnabled}
+                                shouldDim={
+                                    shouldDimFeeds &&
+                                    selectedFeed !== feed.id
+                                }
+                                onSelectFeed={onSelectFeed}
+                                onToggleFeed={onToggleFeed}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </AccordionContent>
         </AccordionItem>
     );
 }

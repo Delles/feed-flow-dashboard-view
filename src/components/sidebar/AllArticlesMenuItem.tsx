@@ -1,4 +1,5 @@
-import { Globe } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface AllArticlesMenuItemProps {
     articleCount: number;
@@ -9,63 +10,38 @@ interface AllArticlesMenuItemProps {
 }
 
 export function AllArticlesMenuItem({
-    articleCount,
-    feedCount,
     isActive,
-    hasActiveFilter,
     onSelectAll,
 }: AllArticlesMenuItemProps) {
     return (
-        <div
-            className={`transition-all duration-200 ${
-                hasActiveFilter && !isActive
-                    ? "opacity-60"
-                    : "opacity-100"
+        <button
+            onClick={onSelectAll}
+            className={`w-full group relative px-6 py-4 rounded-2xl transition-all duration-500 overflow-hidden ${
+                isActive
+                    ? "bg-primary text-white shadow-xl shadow-primary/20"
+                    : "bg-secondary/30 text-foreground hover:bg-secondary/50 hover:translate-x-1"
             }`}
         >
-            <button
-                onClick={onSelectAll}
-                className={`w-full p-3 rounded-lg floating-card focus-ring transition-all duration-200 ${
-                    isActive
-                        ? "bg-sidebar-primary/10 border border-sidebar-primary/30 shadow-sm"
-                        : "bg-card border border-border hover:border-sidebar-primary/20 hover:bg-sidebar-primary/5"
-                }`}
-            >
-                <div className="flex items-center w-full gap-3">
-                    <div
-                        className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 ${
-                            isActive
-                                ? "bg-sidebar-primary text-white"
-                                : "bg-sidebar-primary/10 text-sidebar-primary"
-                        }`}
-                    >
-                        <Globe
-                            className="h-4 w-4"
-                            aria-hidden="true"
-                        />
-                    </div>
-                    <div className="flex-1 text-left">
-                        <div
-                            className={`font-semibold text-sm transition-colors duration-200 ${
-                                isActive
-                                    ? "text-sidebar-primary"
-                                    : "text-foreground"
-                            }`}
-                        >
-                            Toate articolele
-                        </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs text-muted-foreground">
-                                {feedCount} {feedCount === 1 ? "sursă" : "surse"}
-                            </span>
-                            <span className="text-muted-foreground text-xs">•</span>
-                            <span className="text-xs text-muted-foreground">
-                                {articleCount} articole
-                            </span>
-                        </div>
-                    </div>
+            {isActive && (
+                <motion.div 
+                    layoutId="menu-bg"
+                    className="absolute inset-0 bg-gradient-to-br from-primary to-blue-600 z-0"
+                />
+            )}
+            
+            <div className="flex items-center justify-between relative z-10">
+                <div className="flex flex-col text-left">
+                    <span className={`text-[8px] font-black uppercase tracking-[0.2em] mb-1 ${isActive ? "text-white/60" : "text-muted-foreground/50"}`}>
+                        Flux General
+                    </span>
+                    <h2 className="font-serif font-black text-lg tracking-tight leading-none">
+                        Ultimele Știri
+                    </h2>
                 </div>
-            </button>
-        </div>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${isActive ? "bg-white/20 rotate-0" : "bg-primary/10 text-primary -rotate-45 group-hover:rotate-0"}`}>
+                    <ChevronRight className="w-4 h-4" />
+                </div>
+            </div>
+        </button>
     );
 }
