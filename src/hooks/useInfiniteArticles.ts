@@ -70,6 +70,16 @@ export function useInfiniteArticles(
         ]
     );
 
+    // Create stable string keys for object dependencies
+    const enabledFeedsKey = Object.keys(enabledFeeds)
+        .filter((k) => enabledFeeds[k])
+        .sort()
+        .join(",");
+    const enabledCategoriesKey = Object.keys(enabledCategories)
+        .filter((k) => enabledCategories[k])
+        .sort()
+        .join(",");
+
     // Check if filter configuration has changed
     const hasFilterChanged = useMemo(() => {
         const prev = filterConfigRef.current;
@@ -77,12 +87,23 @@ export function useInfiniteArticles(
             prev.searchQuery !== debouncedConfig.searchQuery ||
             prev.selectedFeed !== debouncedConfig.selectedFeed ||
             prev.selectedCategory !== debouncedConfig.selectedCategory ||
-            JSON.stringify(prev.enabledFeeds) !==
-                JSON.stringify(debouncedConfig.enabledFeeds) ||
-            JSON.stringify(prev.enabledCategories) !==
-                JSON.stringify(debouncedConfig.enabledCategories)
+            // Compare using stable keys instead of JSON.stringify
+            Object.keys(prev.enabledFeeds)
+                .filter((k) => prev.enabledFeeds[k])
+                .sort()
+                .join(",") !== enabledFeedsKey ||
+            Object.keys(prev.enabledCategories)
+                .filter((k) => prev.enabledCategories[k])
+                .sort()
+                .join(",") !== enabledCategoriesKey
         );
-    }, [debouncedConfig]);
+    }, [
+        debouncedConfig.searchQuery,
+        debouncedConfig.selectedFeed,
+        debouncedConfig.selectedCategory,
+        enabledFeedsKey,
+        enabledCategoriesKey,
+    ]);
 
     // Reset pagination when filters change using useEffect to avoid infinite loops
     useEffect(() => {
@@ -175,19 +196,19 @@ export function useInfiniteArticles(
         return totalShown < totalAvailable && totalShown < MAX_CACHED_ARTICLES;
     }, [displayedArticles.length, filteredArticleIds.length]);
 
-/**
- * Load more articles by incrementing the current page.
- * Uses a small delay to provide visual feedback during loading.
- *
- * Fix: Simplified from requestAnimationFrame approach to basic setTimeout for reliability.
- * The original approach was over-engineered for this simple state update.
- */
+    /**
+     * Load more articles by incrementing the current page.
+     * Uses a small delay to provide visual feedback during loading.
+     *
+     * Fix: Simplified from requestAnimationFrame approach to basic setTimeout for reliability.
+     * The original approach was over-engineered for this simple state update.
+     */
     const loadMore = useCallback(() => {
         if (hasMore && !isLoading && !isSearching) {
             setIsLoading(true);
             // Small delay to show loading state
             setTimeout(() => {
-                setCurrentPage((prev) => prev + 1);
+                setCurrentPage((p) => p + 1);
                 setIsLoading(false);
             }, 100);
         }

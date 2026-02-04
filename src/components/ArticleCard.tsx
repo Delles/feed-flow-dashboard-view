@@ -7,7 +7,7 @@ import {
 import { Article, RSSFeed } from "@/types/rss";
 import { Rss, Clock, ExternalLink } from "lucide-react";
 import { getOptimisedImage } from "@/lib/utils";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +18,8 @@ import { Badge } from "@/components/ui/badge";
 interface ArticleCardProps {
     /** Article data to display */
     article: Article;
-    /** Array of RSS feeds for metadata lookup */
-    feeds: RSSFeed[];
+    /** Map of RSS feeds for metadata lookup */
+    feedsMap: Map<string, RSSFeed>;
     /** Whether this is the first article (for image priority) */
     isFirst?: boolean;
 }
@@ -49,6 +49,13 @@ function timeSince(date: Date): string {
     return "chiar acum";
 }
 
+const LOADING_PLACEHOLDER = (
+    <div className="flex flex-col items-center gap-2">
+        <Rss className="w-8 h-8 text-muted-foreground/50" />
+        <div className="w-16 h-1 bg-muted-foreground/20 rounded-full animate-pulse"></div>
+    </div>
+);
+
 /**
  * Article card component displaying article content with image, metadata, and interactive elements.
  *
@@ -59,12 +66,12 @@ function timeSince(date: Date): string {
  * - Accessible keyboard navigation
  * - Optimized image loading for performance
  */
-export function ArticleCard({
+function ArticleCardComponent({
     article,
-    feeds,
+    feedsMap,
     isFirst = false,
 }: ArticleCardProps) {
-    const feed = feeds.find((f) => f.id === article.feedId);
+    const feed = feedsMap.get(article.feedId);
     const imgRef = useRef<HTMLImageElement>(null);
     const [useOriginal, setUseOriginal] = useState(false);
     const [isVisible, setIsVisible] = useState(isFirst);
@@ -94,19 +101,19 @@ export function ArticleCard({
         useOriginal && article.image
             ? article.image
             : article.image
-            ? getOptimisedImage(article.image, 384, 80) // Optimize for actual display size ~350px
-            : "";
+                ? getOptimisedImage(article.image, 384, 80) // Optimize for actual display size ~350px
+                : "";
     const srcSet =
         !useOriginal && article.image
             ? `${getOptimisedImage(
-                  article.image,
-                  384,
-                  80
-              )} 384w, ${getOptimisedImage(
-                  article.image,
-                  512,
-                  80
-              )} 512w, ${getOptimisedImage(article.image, 768, 80)} 768w`
+                article.image,
+                384,
+                80
+            )} 384w, ${getOptimisedImage(
+                article.image,
+                512,
+                80
+            )} 512w, ${getOptimisedImage(article.image, 768, 80)} 768w`
             : undefined;
 
     // Preload the first visible image to improve LCP on mobile
@@ -141,10 +148,7 @@ export function ArticleCard({
                 >
                     {/* Always show placeholder first to prevent layout shift */}
                     <div className="w-full h-full bg-gradient-to-br from-muted/20 to-muted/40 flex items-center justify-center absolute inset-0">
-                        <div className="flex flex-col items-center gap-2">
-                            <Rss className="w-8 h-8 text-muted-foreground/50" />
-                            <div className="w-16 h-1 bg-muted-foreground/20 rounded-full animate-pulse"></div>
-                        </div>
+                        {LOADING_PLACEHOLDER}
                     </div>
                     {isVisible && (
                         <img
@@ -152,9 +156,8 @@ export function ArticleCard({
                             srcSet={srcSet}
                             sizes="(max-width: 640px) 92vw, 384px"
                             alt={article.title}
-                            className={`w-full h-full object-cover transition-all duration-500 absolute inset-0 ${
-                                imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"
-                            }`}
+                            className={`w-full h-full object-cover transition-all duration-500 absolute inset-0 ${imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"
+                                }`}
                             loading={isFirst ? "eager" : "lazy"}
                             fetchPriority={isFirst ? "high" : "auto"}
                             decoding="async"
@@ -223,3 +226,11 @@ export function ArticleCard({
         </Card>
     );
 }
+
+export const ArticleCard = memo(ArticleCardComponent, (prev, next) => {
+    return (
+        prev.article.id === next.article.id &&
+        prev.isFirst === next.isFirst &&
+        prev.feedsMap === next.feedsMap
+    );
+});

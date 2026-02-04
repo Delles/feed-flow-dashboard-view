@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ArticleGrid } from "@/components/ArticleGrid";
@@ -32,6 +32,20 @@ const Index = () => {
         handleSearch,
     } = useFilters();
 
+    const [isPending, startTransition] = useTransition();
+
+    const onSelectFeedWrapped = (feedId: string | null) => {
+        startTransition(() => {
+            handleSelectFeed(feedId);
+        });
+    };
+
+    const onSelectCategoryWrapped = (category: string | null) => {
+        startTransition(() => {
+            handleSelectCategory(category);
+        });
+    };
+
     const {
         displayedArticles,
         hasMore,
@@ -55,7 +69,7 @@ const Index = () => {
 
     useEffect(() => {
         const onScroll = () => setShowScrollTop(window.scrollY > 400);
-        window.addEventListener("scroll", onScroll);
+        window.addEventListener("scroll", onScroll, { passive: true });
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
@@ -69,12 +83,12 @@ const Index = () => {
                 <AppSidebar
                     feeds={feeds}
                     articles={articles}
-                    onAddFeed={() => {}} // Placeholder, not implemented
-                    onRemoveFeed={() => {}} // Placeholder, not implemented
+                    onAddFeed={() => { }} // Placeholder, not implemented
+                    onRemoveFeed={() => { }} // Placeholder, not implemented
                     selectedFeed={selectedFeed}
-                    onSelectFeed={handleSelectFeed}
+                    onSelectFeed={onSelectFeedWrapped}
                     selectedCategory={selectedCategory}
-                    onSelectCategory={handleSelectCategory}
+                    onSelectCategory={onSelectCategoryWrapped}
                     enabledFeeds={enabledFeeds}
                     enabledCategories={enabledCategories}
                     onToggleFeed={handleToggleFeed}
@@ -89,12 +103,12 @@ const Index = () => {
                         searchQuery={searchQuery}
                         totalAvailable={totalAvailable}
                         isSearching={isSearching}
-                        isRefreshing={isFetching}
+                        isRefreshing={isFetching || isPending}
                         onSearch={handleSearch}
                         onRefresh={refetch}
-                        onSelectFeed={handleSelectFeed}
-                        onSelectCategory={handleSelectCategory}
-                        onAddFeed={() => {}}
+                        onSelectFeed={onSelectFeedWrapped}
+                        onSelectCategory={onSelectCategoryWrapped}
+                        onAddFeed={() => { }}
                     />
 
                     <main className="flex-1 p-6 pt-4 md:pt-6">
@@ -103,7 +117,7 @@ const Index = () => {
                                 articles={displayedArticles}
                                 feeds={feeds}
                                 hasMore={hasMore}
-                                isLoading={isLoadingMore}
+                                isLoading={isLoadingMore || isPending}
                                 onLoadMore={loadMore}
                                 totalAvailable={totalAvailable}
                             />

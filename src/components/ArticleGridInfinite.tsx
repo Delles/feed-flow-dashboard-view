@@ -6,7 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ArticleGridInfiniteProps {
     articles: Article[];
-    feeds: RSSFeed[];
+    feedsMap: Map<string, RSSFeed>;
     hasMore: boolean;
     isLoading: boolean;
     onLoadMore: () => void;
@@ -15,7 +15,7 @@ interface ArticleGridInfiniteProps {
 
 export function ArticleGridInfinite({
     articles,
-    feeds,
+    feedsMap,
     hasMore,
     isLoading,
     onLoadMore,
@@ -78,7 +78,7 @@ export function ArticleGridInfinite({
                         <ArticleCard
                             key={article.id}
                             article={article}
-                            feeds={feeds}
+                            feedsMap={feedsMap}
                             isFirst={index === 0}
                         />
                     ))}
@@ -89,7 +89,7 @@ export function ArticleGridInfinite({
                         <ArticleCard
                             key={article.id}
                             article={article}
-                            feeds={feeds}
+                            feedsMap={feedsMap}
                             isFirst={index === 0}
                         />
                     ))}
