@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useMemo } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { useVirtualizer, Virtualizer } from "@tanstack/react-virtual";
 import { Article, RSSFeed } from "@/types/rss";
 import { ArticleCard } from "./ArticleCard";
@@ -7,7 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ArticleGridVirtualProps {
     articles: Article[];
-    feeds: RSSFeed[];
+    feedsMap: Map<string, RSSFeed>;
     hasMore: boolean;
     isLoading: boolean;
     onLoadMore: () => void;
@@ -16,7 +16,7 @@ interface ArticleGridVirtualProps {
 
 export function ArticleGridVirtual({
     articles,
-    feeds,
+    feedsMap,
     hasMore,
     isLoading,
     onLoadMore,
@@ -67,14 +67,6 @@ export function ArticleGridVirtual({
         return () => observers.forEach(observer => observer.disconnect());
     }, [handleIntersection, isMobile]);
 
-    const articlesWithFeeds = useMemo(() =>
-        articles.map(article => ({
-            article,
-            feed: feeds.find(f => f.id === article.feedId)
-        })),
-        [articles, feeds]
-    );
-
     if (articles.length === 0 && !isLoading) {
         return (
             <div className="text-center py-12">
@@ -98,7 +90,7 @@ export function ArticleGridVirtual({
                         <ArticleCard
                             key={article.id}
                             article={article}
-                            feeds={feeds}
+                            feedsMap={feedsMap}
                             isFirst={index === 0}
                         />
                     ))}
@@ -162,7 +154,7 @@ export function ArticleGridVirtual({
                 }}
             >
                 {(parentRef.current ? virtualizer.getVirtualItems() : []).map((virtualItem) => {
-                    const { article } = articlesWithFeeds[virtualItem.index];
+                    const article = articles[virtualItem.index];
 
                     return (
                         <div
@@ -176,7 +168,7 @@ export function ArticleGridVirtual({
                             <div className="py-2">
                                 <ArticleCard
                                     article={article}
-                                    feeds={feeds}
+                                    feedsMap={feedsMap}
                                     isFirst={virtualItem.index === 0}
                                 />
                             </div>

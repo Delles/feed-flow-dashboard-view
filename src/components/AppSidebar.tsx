@@ -123,6 +123,14 @@ export function AppSidebar({
         }
     }, [selectedCategory]);
 
+    // Pre-compute article counts per feed
+    const articleCountsByFeed = useMemo(() => {
+        return articles.reduce((acc, article) => {
+            acc[article.feedId] = (acc[article.feedId] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+    }, [articles]);
+
     return (
         <Sidebar className="border-r border-border no-scrollbar sidebar-offset-left">
             <SidebarHeader>
@@ -162,7 +170,9 @@ export function AppSidebar({
                         {/* Legend */}
                         <div className="flex items-center justify-end gap-3 text-[10px] text-muted-foreground/70 uppercase tracking-wide">
                             <span className="flex items-center gap-1">
-                                <span className="w-3 h-3 rounded bg-muted flex items-center justify-center text-[8px]">3</span>
+                                <span className="w-3 h-3 rounded bg-muted flex items-center justify-center text-[8px]">
+                                    3
+                                </span>
                                 Surse
                             </span>
                             <span className="flex items-center gap-1">
@@ -183,7 +193,7 @@ export function AppSidebar({
                                 key={category}
                                 category={category}
                                 feeds={feedsByCategory[category]}
-                                articles={articles}
+                                articleCounts={articleCountsByFeed}
                                 selectedFeed={selectedFeed}
                                 selectedCategory={selectedCategory}
                                 enabledFeeds={enabledFeeds}

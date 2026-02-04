@@ -1,17 +1,17 @@
-import { useMemo } from "react";
+import { memo } from "react";
 import { ChevronDown, Eye, EyeOff, Rss } from "lucide-react";
 import {
     AccordionContent,
     AccordionItem,
 } from "@/components/ui/accordion";
-import { RSSFeed, Article } from "@/types/rss";
+import { RSSFeed } from "@/types/rss";
 import { FeedListItem } from "./FeedListItem";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 
 interface CategoryAccordionProps {
     category: string;
     feeds: RSSFeed[];
-    articles: Article[];
+    articleCounts: Record<string, number>;
     selectedFeed: string | null;
     selectedCategory: string | null;
     enabledFeeds: Record<string, boolean>;
@@ -23,10 +23,10 @@ interface CategoryAccordionProps {
     onToggleCategory: (category: string, enabled: boolean) => void;
 }
 
-export function CategoryAccordion({
+function CategoryAccordionComponent({
     category,
     feeds,
-    articles,
+    articleCounts,
     selectedFeed,
     selectedCategory,
     enabledFeeds,
@@ -49,29 +49,23 @@ export function CategoryAccordion({
     // Determine if feeds in this category should be dimmed
     const shouldDimFeeds = hasActiveFilter && !isCategorySelected;
 
-    // Pre-compute article counts per feed
-    const articleCountsByFeed = useMemo(() => {
-        return articles.reduce((acc, article) => {
-            acc[article.feedId] = (acc[article.feedId] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-    }, [articles]);
-
     return (
         <AccordionItem
             value={category}
             className={`border-none transition-all duration-200 mb-1 ${!isCategoryEnabled
-                ? "opacity-40"
-                : shouldDimCategory
-                    ? "opacity-50"
-                    : "opacity-100"
+                    ? "opacity-40"
+                    : shouldDimCategory
+                        ? "opacity-50"
+                        : "opacity-100"
                 }`}
         >
             <div className="px-1">
-                <div className={`rounded-lg border transition-all duration-200 ${isCategorySelected
-                    ? "bg-sidebar-primary/5 border-sidebar-primary/30"
-                    : "bg-card border-border hover:border-sidebar-primary/20"
-                    }`}>
+                <div
+                    className={`rounded-lg border transition-all duration-200 ${isCategorySelected
+                            ? "bg-sidebar-primary/5 border-sidebar-primary/30"
+                            : "bg-card border-border hover:border-sidebar-primary/20"
+                        }`}
+                >
                     {/* Unified Category Header */}
                     <div className="flex items-center gap-2 px-3 py-2">
                         {/* Category Icon & Name - Clickable to filter */}
@@ -84,31 +78,47 @@ export function CategoryAccordion({
                                     onSelectCategory(category);
                                 }
                             }}
-                            className={`flex items-center gap-2 flex-1 min-w-0 focus-ring rounded transition-all duration-200 ${!isCategoryEnabled ? "cursor-not-allowed" : "cursor-pointer"
+                            className={`flex items-center gap-2 flex-1 min-w-0 focus-ring rounded transition-all duration-200 ${!isCategoryEnabled
+                                    ? "cursor-not-allowed"
+                                    : "cursor-pointer"
                                 }`}
                         >
-                            <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-200 ${isCategorySelected
-                                ? "bg-sidebar-primary/20"
-                                : "bg-muted"
-                                }`}>
+                            <div
+                                className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-200 ${isCategorySelected
+                                        ? "bg-sidebar-primary/20"
+                                        : "bg-muted"
+                                    }`}
+                            >
                                 {feeds[0]?.favicon ? (
-                                    <span className="text-xs">{feeds[0].favicon}</span>
+                                    <span className="text-xs">
+                                        {feeds[0].favicon}
+                                    </span>
                                 ) : (
-                                    <Rss className={`h-3 w-3 ${isCategorySelected ? "text-sidebar-primary" : "text-muted-foreground"
-                                        }`} />
+                                    <Rss
+                                        className={`h-3 w-3 ${isCategorySelected
+                                                ? "text-sidebar-primary"
+                                                : "text-muted-foreground"
+                                            }`}
+                                    />
                                 )}
                             </div>
-                            <span className={`text-sm font-medium truncate transition-colors duration-200 ${isCategorySelected ? "text-sidebar-primary" : "text-foreground"
-                                }`}>
+                            <span
+                                className={`text-sm font-medium truncate transition-colors duration-200 ${isCategorySelected
+                                        ? "text-sidebar-primary"
+                                        : "text-foreground"
+                                    }`}
+                            >
                                 {category}
                             </span>
                         </button>
 
                         {/* Feed Count */}
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded transition-colors duration-200 ${isCategorySelected
-                            ? "text-sidebar-primary bg-sidebar-primary/10"
-                            : "text-muted-foreground bg-muted"
-                            }`}>
+                        <span
+                            className={`text-xs font-medium px-2 py-0.5 rounded transition-colors duration-200 ${isCategorySelected
+                                    ? "text-sidebar-primary bg-sidebar-primary/10"
+                                    : "text-muted-foreground bg-muted"
+                                }`}
+                        >
                             {feeds.length}
                         </span>
 
@@ -119,7 +129,11 @@ export function CategoryAccordion({
                                 onToggleCategory(category, !isCategoryEnabled);
                             }}
                             className="p-1 hover:bg-sidebar-primary/10 rounded transition-all duration-200 focus-ring"
-                            title={isCategoryEnabled ? "Ascunde categoria" : "Arată categoria"}
+                            title={
+                                isCategoryEnabled
+                                    ? "Ascunde categoria"
+                                    : "Arată categoria"
+                            }
                         >
                             {isCategoryEnabled ? (
                                 <Eye className="h-4 w-4 text-sidebar-primary" />
@@ -141,11 +155,16 @@ export function CategoryAccordion({
                                 <FeedListItem
                                     key={feed.id}
                                     feed={feed}
-                                    articleCount={articleCountsByFeed[feed.id] ?? 0}
+                                    articleCount={articleCounts[feed.id] ?? 0}
                                     isSelected={selectedFeed === feed.id}
-                                    isFeedEnabled={enabledFeeds[feed.id] ?? true}
+                                    isFeedEnabled={
+                                        enabledFeeds[feed.id] ?? true
+                                    }
                                     isCategoryEnabled={isCategoryEnabled}
-                                    shouldDim={shouldDimFeeds && selectedFeed !== feed.id}
+                                    shouldDim={
+                                        shouldDimFeeds &&
+                                        selectedFeed !== feed.id
+                                    }
                                     onSelectFeed={onSelectFeed}
                                     onToggleFeed={onToggleFeed}
                                 />
@@ -157,3 +176,5 @@ export function CategoryAccordion({
         </AccordionItem>
     );
 }
+
+export const CategoryAccordion = memo(CategoryAccordionComponent);

@@ -1,53 +1,52 @@
 # 📱 Feed Flow Dashboard
 
-A modern, high-performance RSS feed dashboard built with React and TypeScript. Experience lightning-fast article browsing with enterprise-grade error handling, beautiful UI components, and optimized performance.
+A modern, high-performance RSS feed dashboard built with React and TypeScript, specifically optimized for Romanian news sources. Experience lightning-fast article browsing with enterprise-grade error handling, beautiful UI components, and optimized performance.
 
 ![Feed Flow Dashboard Preview](./preview.png)
 
 ## ✨ Features
 
 ### 🎨 **Modern UI/UX**
-- **shadcn/ui Components** - Beautiful, fully accessible UI components
+- **shadcn/ui Components** - Beautiful, fully accessible UI components built on Radix UI
 - **Dark/Light Theme** - Seamless theme switching with system preference detection
-- **Responsive Design** - Optimized for desktop, tablet, and mobile
-- **Smooth Animations** - Fluid transitions and micro-interactions
-- **Glassmorphism Effects** - Modern visual effects with backdrop blur
+- **Responsive Design** - Optimized for desktop, tablet, and mobile with a mobile-first approach
+- **Glassmorphism Effects** - Modern visual effects with backdrop blur and semi-transparent surfaces
+- **Smooth Transitions** - Fluid UI interactions and loading states
 
 ### 🔍 **Advanced Search & Navigation**
-- **Real-time Search** - Instant article search with intelligent debouncing
-- **Smart Filtering** - Multi-criteria filtering by feed, category, and date
-- **Breadcrumb Navigation** - Intuitive navigation between feeds and categories
-- **Keyboard Shortcuts** - Efficient keyboard navigation
-- **Quick Actions** - Fast feed management and category switching
+- **Real-time Search** - Instant article search with intelligent debouncing and `Cmd/Ctrl+K` focus shortcut
+- **Smart Filtering** - Multi-criteria filtering by feed source, category, and search query
+- **Breadcrumb Navigation** - Intuitive navigation showing the current feed or category path
+- **Keyboard Shortcuts** - Efficient keyboard navigation for search and common actions
+- **Quick Feed Management** - Fast feed detection and validation using multiple CORS proxies
 
-### ⚡ **Enterprise Performance**
-- **Virtualized Lists** - Handle thousands of articles without performance degradation
-- **Infinite Scrolling** - Seamless article loading with intersection observer
-- **Intelligent Caching** - Advanced caching strategies with TanStack Query
-- **Lazy Loading** - Optimized component and image loading
-- **Bundle Optimization** - Advanced code splitting and compression
-- **Service Worker** - Offline support and background sync
+### ⚡ **Performance Optimizations**
+- **Hybrid Virtualization** - Uses `@tanstack/react-virtual` for large lists on mobile and optimized grids on desktop
+- **Infinite Scrolling** - Seamless article loading with Intersection Observer for an uninterrupted reading experience
+- **Intelligent Caching** - Advanced caching strategies with TanStack Query v5 (5min stale time, 30min garbage collection)
+- **Lazy Loading** - Granular code splitting and lazy loading for routes and heavy components
+- **Asset Compression** - Production builds are compressed using Brotli for minimal bundle sizes
+- **Transition API** - Uses React's `useTransition` for responsive filtering and navigation
 
 ### 🛡️ **Robust Error Handling**
-- **Error Boundaries** - Graceful error recovery for React components
-- **User-Friendly Messages** - Clear, actionable error notifications
-- **Retry Mechanisms** - Automatic and manual retry for failed operations
-- **Fallback States** - Consistent UX during loading and error states
-- **Network Awareness** - Smart handling of connectivity issues
+- **Error Boundaries** - Graceful error recovery for React components preventing full app crashes
+- **User-Friendly Messaging** - Centralized error processing with categorized messages (Network, API, Validation)
+- **Retry Mechanisms** - Automatic and manual retry for failed network operations
+- **Async Wrapper** - Consistent loading/error/empty state patterns across all async operations
+- **Network Awareness** - Intelligent handling of connectivity status and focus management
 
-### 🏗️ **Enterprise Architecture**
+### 🏗️ **Architecture**
 - **TypeScript** - 100% type safety with strict configuration
-- **React Query** - Advanced server state management with optimistic updates
-- **Zod Validation** - Runtime type validation and form handling
-- **Modular Design** - Clean, maintainable component architecture
-- **Performance Monitoring** - Built-in Core Web Vitals tracking
-- **Accessibility** - WCAG 2.1 compliant with screen reader support
+- **TanStack Query v5** - Enterprise-grade server state management
+- **Zod & React Hook Form** - Type-safe form validation and management
+- **Modular Component Design** - Clean, maintainable architecture following atomic design principles
+- **Core Web Vitals** - Integrated performance monitoring via Vercel Speed Insights
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Git
+- Node.js 18+
+- npm
 
 ### Installation
 
@@ -68,8 +67,8 @@ A modern, high-performance RSS feed dashboard built with React and TypeScript. E
    ```
 
 4. **Open in browser**
-   ```
-   http://localhost:5173
+   ```text
+   http://localhost:8080
    ```
 
 ### Build for Production
@@ -83,206 +82,79 @@ npm run preview
 
 ### Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run type-check` - Type checking
+- `npm run dev` - Start development server (port 8080)
+- `npm run build` - Build for production with Brotli compression
+- `npm run lint` - Run ESLint for code quality
+- `npm run preview` - Preview the production build locally
 
 ### Project Structure
 
 ```
 src/
-├── components/          # Reusable UI components
-│   ├── ui/             # 30+ shadcn/ui components (fully accessible)
-│   ├── ErrorBoundary.tsx     # React error boundary with recovery
-│   ├── AsyncWrapper.tsx      # Loading/error/empty state wrapper
-│   ├── PageHeader.tsx        # Top navigation and search
-│   ├── AppSidebar.tsx        # Navigation and filters
-│   ├── ArticleCard.tsx       # Individual article display
-│   ├── ArticleGridVirtual.tsx # Virtualized article list
-│   ├── AddFeedDialog.tsx     # RSS feed management
+├── components/          # React components
+│   ├── ui/             # shadcn/ui primitives (Radix UI based)
+│   ├── sidebar/        # Sidebar-specific components
+│   ├── ErrorBoundary.tsx     # Global error catching
+│   ├── AsyncWrapper.tsx      # Loading/Error/Empty state handler
+│   ├── ArticleGrid.tsx       # Main article container with layout switching
+│   ├── ArticleGridVirtual.tsx # Virtualized list implementation
+│   ├── PageHeader.tsx        # Search, breadcrumbs, and actions
+│   ├── AppSidebar.tsx        # Main navigation and feed filtering
 │   └── ...
 ├── hooks/              # Custom React hooks
-│   ├── useErrorHandler.ts    # Centralized error handling
-│   ├── useFilters.ts         # Filter state management
-│   ├── useIncrementalFeeds.ts # RSS feed management
-│   ├── useInfiniteArticles.ts # Article loading & virtualization
+│   ├── useErrorHandler.ts    # Centralized error handling logic
+│   ├── useFeedManager.ts     # RSS feed state and sync logic
+│   ├── useFilters.ts         # Filtering and search state
+│   ├── useInfiniteArticles.ts # Pagination and data transformation
 │   └── ...
-├── pages/              # Page components
-│   ├── Index.tsx       # Main dashboard page
-│   └── NotFound.tsx    # 404 error page
-├── types/              # TypeScript type definitions
-│   ├── rss.ts          # RSS feed and article types
-│   └── ...
-├── lib/                # Utility functions
-│   ├── rssParser.ts    # RSS feed parsing
-│   ├── mockData.ts     # Development mock data
-│   └── ...
-└── styles/             # Global styles and CSS variables
+├── lib/                # Utilities and core logic
+│   ├── rssParser.ts    # Robust RSS parsing with proxy failovers
+│   ├── mockData.ts     # Initial Romanian RSS feed sources
+│   ├── fetchInitialFeedData.ts # Async data initialization
+│   └── utils.ts        # Tailwind merge and common utilities
+├── pages/              # Main route components
+│   ├── Index.tsx       # Dashboard main view
+│   └── NotFound.tsx    # 404 page
+├── types/              # TypeScript definitions
+│   └── rss.ts          # Core domain models (Article, RSSFeed)
+└── App.tsx             # Root component with providers
 ```
-
-### Error Handling System
-
-The application includes a comprehensive error handling system:
-
-#### Error Boundary (`ErrorBoundary.tsx`)
-- Catches React component errors gracefully
-- Provides user-friendly error UI with recovery options
-- Includes technical details for debugging (collapsible)
-- Wrapped around the entire application
-
-#### Error Handler Hook (`useErrorHandler.ts`)
-- Centralized error processing with user-friendly messages
-- Supports different error types (Network, API, Validation, Permission)
-- Automatic toast notifications with retry options
-- Custom `AppError` class for enhanced error metadata
-
-#### Async Wrapper (`AsyncWrapper.tsx`)
-- Consistent loading/error/empty states across the app
-- Automatic error handling integration
-- Customizable fallback components
-- Retry functionality for failed operations
 
 ## 🎯 Usage
 
-### Adding RSS Feeds
-1. Click the **"Add RSS Feed"** button in the sidebar
-2. Enter the RSS feed URL
-3. Select a category (optional)
-4. Click **"Add Feed"**
+### RSS Feed Management
+- **Initial Feeds**: Pre-configured with top Romanian sources (Recorder, HotNews, Digi24, etc.)
+- **Adding Feeds**: Click "Adaugă flux RSS" in the sidebar to add any valid RSS/XML URL
+- **CORS Proxy**: Automatically uses multiple proxy services to bypass browser CORS restrictions
 
-### Searching Articles
-- Use the search bar in the header
-- Press `Cmd/Ctrl+K` to quickly focus search
-- Search by title, description, or content
+### Navigation & Filtering
+- **Categories**: Filter articles by Sport, Știri TV, Ziare, or Investigații
+- **Search**: Real-time search across titles and descriptions (use `⌘K`)
+- **Source Filtering**: Toggle specific feeds on or off from the sidebar
 
-### Filtering Content
-- Use the sidebar to filter by:
-  - **Feed Source** - Select specific RSS feeds
-  - **Category** - Filter by topic/category
-  - **Date Range** - Filter by publication date
+## 🏗️ Tech Stack
 
-### Keyboard Shortcuts
-- `Cmd/Ctrl+K` - Focus search input
-- `Escape` - Clear search/close dialogs
-
-## 🏗️ Architecture & Design
-
-### Tech Stack
-- **Frontend**: React 18, TypeScript
-- **Build Tool**: Vite with advanced optimizations
-- **Styling**: Tailwind CSS, shadcn/ui, CSS Variables
-- **State Management**: TanStack Query v5 with advanced caching
-- **Form Validation**: Zod, React Hook Form
+- **Framework**: React 18 (Vite)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui (Radix UI)
+- **State Management**: TanStack Query v5
+- **Forms**: React Hook Form + Zod
 - **Icons**: Lucide React
-- **Error Handling**: Custom error boundaries and hooks
-- **Performance**: @tanstack/react-virtual, Intersection Observer
 - **Analytics**: Vercel Analytics & Speed Insights
-- **Date Handling**: date-fns with timezone support
-- **Accessibility**: ARIA compliance, keyboard navigation
-
-### Design System
-- **Colors**: Extended palette with semantic colors (success, warning, info)
-- **Typography**: Responsive text scaling with custom font stacks
-- **Spacing**: Standardized spacing scale (4px increments)
-- **Components**: 30+ accessible, reusable UI primitives
-- **Animations**: CSS transitions with reduced motion support
-- **Themes**: Dark/light with system preference detection
-
-### Enterprise Performance Optimizations
-- **Bundle Splitting**: Granular chunking (react-vendor, tanstack, radix, forms, articles, sidebar)
-- **Code Compression**: Brotli compression for production builds
-- **Virtual Scrolling**: Handle 10k+ articles without performance degradation
-- **Image Optimization**: Lazy loading with aspect ratio preservation
-- **Intelligent Caching**: 5min stale time, 30min garbage collection
-- **Background Refresh**: 15min interval with network awareness
-- **Service Worker**: Offline support with cache management
-- **Core Web Vitals**: LCP, FID, CLS monitoring via Vercel Analytics
-
-## 📱 Mobile Experience
-
-The dashboard is fully responsive with:
-- **Mobile-first Design** - Optimized for touch interactions
-- **Swipe Gestures** - Natural navigation on mobile
-- **Adaptive Layout** - Content reflows based on screen size
-- **Touch-friendly UI** - Appropriate touch target sizes
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🚀 Deployment & Monitoring
-
-### Production Deployment
-```bash
-npm run build    # Optimized production build with code splitting
-npm run preview  # Preview production build locally
-```
-
-### Performance Monitoring
-The application includes built-in performance monitoring:
-- **Core Web Vitals**: LCP, FID, CLS tracking via Vercel Analytics
-- **Bundle Analysis**: Granular chunk splitting for optimal loading
-- **Error Tracking**: Comprehensive error boundaries and reporting
-- **Network Monitoring**: Offline support and connectivity awareness
-
-### Service Worker Features
-- **Offline Support**: Cached articles available offline
-- **Background Sync**: Automatic data synchronization
-- **Cache Management**: Intelligent cache invalidation
-- **Push Notifications**: Future-ready notification system
+- **Compression**: Vite Compression (Brotli)
 
 ## 📊 Performance Benchmarks
 
-- **Bundle Size**: ~150KB gzipped (with advanced splitting)
-- **First Contentful Paint**: <1.5s on modern connections
-- **Time to Interactive**: <2s on mobile devices
-- **Lighthouse Score**: 95+ on all categories
-- **Virtual Scrolling**: Handles 10,000+ articles smoothly
+- **Initial Load**: Optimized bundle splitting (react, tanstack, ui chunks)
+- **Virtual Scrolling**: Smoothly handles hundreds of articles with minimal DOM node count
+- **Caching**: 5-minute stale time prevents redundant network requests
+- **Images**: Native lazy loading for article thumbnails
 
-## 🔧 Development Guidelines
+## 📄 License
 
-### Code Quality
-- **ESLint**: Strict linting rules with React best practices
-- **TypeScript**: 100% type coverage with strict mode
-- **Prettier**: Consistent code formatting
-- **Accessibility**: WCAG 2.1 AA compliance
-
-### Component Patterns
-- **Error Boundaries**: All async operations wrapped with error handling
-- **Loading States**: Consistent loading UX across components
-- **Accessibility**: ARIA labels, keyboard navigation, screen reader support
-- **Performance**: Virtual scrolling for large lists, lazy loading for images
-
-## 🙏 Acknowledgments
-
-- [shadcn/ui](https://ui.shadcn.com/) - Enterprise-grade UI components
-- [TanStack Query](https://tanstack.com/query) - Advanced data fetching & caching
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- [Lucide](https://lucide.dev/) - Consistent icon system
-- [Vercel](https://vercel.com/) - Analytics and deployment platform
-- [Vite](https://vitejs.dev/) - Lightning-fast build tool
+This project is licensed under the MIT License.
 
 ---
 
-## 🎯 Project Status
-
-✅ **All Phases Complete**
-- ✅ Modern UI/UX with shadcn/ui components
-- ✅ Enterprise performance optimizations
-- ✅ Comprehensive error handling system
-- ✅ Advanced caching and virtualization
-- ✅ Mobile-responsive design
-- ✅ Accessibility compliance
-- ✅ Production-ready deployment
-
-**Built with ❤️ using modern web technologies - Enterprise-grade RSS dashboard ready for production!** 🚀
+**Built with ❤️ for Romanian News Readers** 🚀

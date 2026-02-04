@@ -24,6 +24,12 @@ export function useFeedManager() {
     const processedArticleIds = useRef(new Set<string>());
     const isRefreshing = useRef(false);
 
+    // Track by length instead of object reference to avoid unnecessary re-runs
+    const feedsCount = loadedFeeds.length;
+    const articlesCount = loadedArticles.length;
+    const lastFeedId = loadedFeeds[loadedFeeds.length - 1]?.id;
+    const lastArticleId = loadedArticles[loadedArticles.length - 1]?.id;
+
     useEffect(() => {
         if (isRefreshing.current) {
             // During refresh: replace all data instead of incremental add
@@ -106,7 +112,7 @@ export function useFeedManager() {
                 );
             }
         }
-    }, [loadedFeeds, loadedArticles]);
+    }, [feedsCount, articlesCount, lastFeedId, lastArticleId]);
 
     const handleToggleFeed = (feedId: string, enabled: boolean) => {
         setEnabledFeeds((prev) => ({ ...prev, [feedId]: enabled }));

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Article, RSSFeed } from "@/types/rss";
 import { ArticleGridInfinite } from "./ArticleGridInfinite";
 import { ArticleGridVirtual } from "./ArticleGridVirtual";
@@ -21,11 +22,15 @@ export function ArticleGrid({
 }: ArticleGridProps) {
     const shouldUseVirtualization = articles.length >= 50;
 
+    const feedsMap = useMemo(() => {
+        return new Map(feeds.map((f) => [f.id, f]));
+    }, [feeds]);
+
     if (shouldUseVirtualization) {
         return (
             <ArticleGridVirtual
                 articles={articles}
-                feeds={feeds}
+                feedsMap={feedsMap}
                 hasMore={hasMore}
                 isLoading={isLoading}
                 onLoadMore={onLoadMore}
@@ -37,7 +42,7 @@ export function ArticleGrid({
     return (
         <ArticleGridInfinite
             articles={articles}
-            feeds={feeds}
+            feedsMap={feedsMap}
             hasMore={hasMore}
             isLoading={isLoading}
             onLoadMore={onLoadMore}
