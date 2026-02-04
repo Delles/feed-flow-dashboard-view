@@ -74,14 +74,22 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
             staleTime: 15 * 60 * 1000, // 15 minutes (increased from 5)
             gcTime: 60 * 60 * 1000, // 1 hour
             retry: (failureCount, error) => {
-                // Check for HTTP status code
+                // Check for HTTP status code from error properties
                 const status = (error as any)?.status || (error as any)?.response?.status || (error as any)?.statusCode;
                 if (typeof status === 'number' && status >= 400 && status < 600) {
                     return false;
                 }
 
-                // Fallback to error message check for non-HTTP errors if needed, but standard logic prefers status
-                // If no status, check if it's a network error or similar that deserves retry
+                // Fallback: parse status from error message (e.g., "HTTP 404: Not Found")
+                if (error instanceof Error) {
+                    const match = error.message.match(/HTTP\s+(\d{3})/);
+                    const parsedStatus = match ? Number(match[1]) : null;
+                    if (parsedStatus && parsedStatus >= 400 && parsedStatus < 600) {
+                        return false;
+                    }
+                }
+
+                // If no HTTP status detected, allow retry for transient network errors
                 return failureCount < 2;
             },
             retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 30000),

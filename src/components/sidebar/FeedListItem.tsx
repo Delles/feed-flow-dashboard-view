@@ -36,12 +36,21 @@ const FeedListItem = memo(function FeedListItem({
             className={`transition-all duration-500 ${!isFeedEnabled || shouldDim ? "opacity-30 grayscale" : "opacity-100"
                 }`}
         >
-            <button
+            <div
+                role="button"
+                tabIndex={isItemEnabled ? 0 : -1}
                 onClick={() => {
                     if (!isItemEnabled) return;
                     onSelectFeed(feed.id);
                 }}
-                className={`w-full group relative px-4 py-2 rounded-xl transition-all duration-500 ${isSelected
+                onKeyDown={(e) => {
+                    if (!isItemEnabled) return;
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSelectFeed(feed.id);
+                    }
+                }}
+                className={`w-full group relative px-4 py-2 rounded-xl transition-all duration-500 cursor-pointer ${isSelected
                     ? "bg-primary/5 text-primary"
                     : "bg-transparent text-foreground/60 hover:bg-accent/20 hover:text-foreground dark:text-foreground/50 dark:hover:text-foreground"
                     }`}
@@ -103,7 +112,7 @@ const FeedListItem = memo(function FeedListItem({
                         </div>
                     </div>
                 </div>
-            </button>
+            </div>
         </div>
     );
 });

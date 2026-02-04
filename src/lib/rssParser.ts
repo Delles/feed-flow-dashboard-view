@@ -48,20 +48,19 @@ async function fetchWithProxy(url: string): Promise<string> {
       }
 
       const contentType = response.headers.get('content-type') || '';
+      const bodyText = await response.text();
 
       // Check if response is XML directly
       if (contentType.includes('xml') || contentType.includes('text')) {
-        const xmlText = await response.text();
-        if (xmlText.includes('<rss') || xmlText.includes('<?xml')) {
+        if (bodyText.includes('<rss') || bodyText.includes('<?xml')) {
           console.log("Successfully fetched RSS data as XML with proxy:", proxy);
-          return xmlText;
+          return bodyText;
         }
       }
 
       // Try parsing as JSON (for proxies that wrap the response)
       try {
-        const clonedResponse = response.clone();
-        const data = await clonedResponse.json();
+        const data = JSON.parse(bodyText);
 
         // Different proxy services return data in different formats
         const xmlText = data.contents || data.body || data.data || data;
@@ -71,11 +70,10 @@ async function fetchWithProxy(url: string): Promise<string> {
           return xmlText;
         }
       } catch (jsonError) {
-        // If JSON parsing fails, try as text (original response is still readable)
-        const textData = await response.text();
-        if (textData.includes('<rss') || textData.includes('<?xml')) {
+        // If JSON parsing fails, check if the body text itself is XML
+        if (bodyText.includes('<rss') || bodyText.includes('<?xml')) {
           console.log("Successfully fetched RSS data as text with proxy:", proxy);
-          return textData;
+          return bodyText;
         }
       }
 

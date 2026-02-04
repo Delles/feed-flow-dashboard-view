@@ -2,10 +2,7 @@ import { ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface AllArticlesMenuItemProps {
-    articleCount: number;
-    feedCount: number;
     isActive: boolean;
-    hasActiveFilter: boolean;
     onSelectAll: () => void;
 }
 
@@ -16,19 +13,18 @@ export function AllArticlesMenuItem({
     return (
         <button
             onClick={onSelectAll}
-            className={`w-full group relative px-6 py-4 rounded-2xl transition-all duration-500 overflow-hidden ${
-                isActive
+            className={`w-full group relative px-6 py-4 rounded-2xl transition-all duration-500 overflow-hidden ${isActive
                     ? "bg-primary text-white shadow-xl shadow-primary/20"
                     : "bg-secondary/30 text-foreground hover:bg-secondary/50 hover:translate-x-1"
-            }`}
+                }`}
         >
             {isActive && (
-                <motion.div 
+                <motion.div
                     layoutId="menu-bg"
                     className="absolute inset-0 bg-gradient-to-br from-primary to-blue-600 z-0"
                 />
             )}
-            
+
             <div className="flex items-center justify-between relative z-10">
                 <div className="flex flex-col text-left">
                     <span className={`text-[8px] font-black uppercase tracking-[0.2em] mb-1 ${isActive ? "text-white/60" : "text-muted-foreground/50"}`}>

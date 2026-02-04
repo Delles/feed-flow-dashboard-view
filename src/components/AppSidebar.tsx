@@ -164,10 +164,7 @@ export function AppSidebar({
                 <div className="space-y-10">
                     <div className="px-1">
                         <AllArticlesMenuItem
-                            articleCount={articles.length}
-                            feedCount={feeds.length}
                             isActive={!hasActiveFilter}
-                            hasActiveFilter={hasActiveFilter}
                             onSelectAll={() => {
                                 onSelectFeed(null);
                                 onSelectCategory(null);

@@ -1,5 +1,4 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function LoadingSkeleton() {
@@ -49,7 +48,7 @@ export function LoadingSkeleton() {
                                 <div className="w-10 h-10 bg-muted rounded-xl" />
                                 <div className="h-6 w-24 bg-muted rounded-md" />
                             </div>
-                            
+
                             <div className="grid grid-cols-2 border-y border-border/30 mb-12">
                                 <div className="p-6 border-r border-border/30 h-24 flex flex-col items-center gap-2">
                                     <div className="h-3 w-10 bg-muted/40 rounded-full" />

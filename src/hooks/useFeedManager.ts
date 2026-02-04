@@ -41,7 +41,7 @@ export function useFeedManager() {
             processedArticleIds.current.clear();
 
             if (loadedFeeds.length > 0) {
-                loadedFeeds.forEach((f) => processedFeedIds.current.add(f.id));
+                loadedFeeds.forEach((f) => { processedFeedIds.current.add(f.id); });
                 setFeeds(loadedFeeds);
                 setEnabledFeeds((prev) => {
                     const updated = { ...prev };
@@ -61,13 +61,16 @@ export function useFeedManager() {
             }
 
             if (loadedArticles.length > 0) {
-                loadedArticles.forEach((a) =>
-                    processedArticleIds.current.add(a.id)
-                );
+                loadedArticles.forEach((a) => {
+                    processedArticleIds.current.add(a.id);
+                });
                 setArticles([...loadedArticles]); // Already sorted in useIncrementalFeeds
             }
 
-            lastVersionRef.current = refreshVersion;
+            // Only mark the refresh cycle as complete after data has been processed
+            if (loadedFeeds.length > 0 || loadedArticles.length > 0) {
+                lastVersionRef.current = refreshVersion;
+            }
         } else {
             // Normal operation: Process only genuinely new items
             const newFeeds = loadedFeeds.filter(
@@ -78,7 +81,7 @@ export function useFeedManager() {
             );
 
             if (newFeeds.length > 0) {
-                newFeeds.forEach((f) => processedFeedIds.current.add(f.id));
+                newFeeds.forEach((f) => { processedFeedIds.current.add(f.id); });
                 setFeeds((prev) => [...prev, ...newFeeds]);
                 setEnabledFeeds((prev) => {
                     const updated = { ...prev };
@@ -98,9 +101,9 @@ export function useFeedManager() {
             }
 
             if (newArticles.length > 0) {
-                newArticles.forEach((a) =>
-                    processedArticleIds.current.add(a.id)
-                );
+                newArticles.forEach((a) => {
+                    processedArticleIds.current.add(a.id);
+                });
                 setArticles((prev) =>
                     [...prev, ...newArticles].sort(
                         (a, b) =>
