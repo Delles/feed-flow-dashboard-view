@@ -54,14 +54,12 @@ function CategoryAccordionComponent({
     return (
         <AccordionItem
             value={category}
-            className={`border-none mb-1 transition-all duration-500 ${
-                !isCategoryEnabled ? "opacity-30 grayscale px-2" : "opacity-100"
-            }`}
+            className={`border-none mb-1 transition-all duration-500 ${!isCategoryEnabled ? "opacity-30 grayscale px-2" : "opacity-100"
+                }`}
         >
             <div
-                className={`flex items-center gap-1 rounded-xl transition-all duration-500 group/cat ${
-                    isCategorySelected ? "bg-primary/5 shadow-sm ring-1 ring-primary/10" : "hover:bg-accent/20"
-                }`}
+                className={`relative flex items-center gap-1 rounded-xl transition-all duration-500 group/cat ${isCategorySelected ? "bg-primary/5 shadow-sm ring-1 ring-primary/10" : "hover:bg-accent/20"
+                    }`}
             >
                 <button
                     onClick={() => {
@@ -72,9 +70,8 @@ function CategoryAccordionComponent({
                             onSelectCategory(category);
                         }
                     }}
-                    className={`flex-1 text-left font-serif font-black text-[15px] px-4 py-2.5 rounded-lg transition-colors truncate ${
-                        isCategorySelected ? "text-primary" : "text-foreground/90 dark:text-foreground/80 group-hover/cat:text-foreground"
-                    }`}
+                    className={`flex-1 text-left font-serif font-black text-[15px] px-4 py-2.5 rounded-lg transition-colors truncate ${isCategorySelected ? "text-primary" : "text-foreground/90 dark:text-foreground/80 group-hover/cat:text-foreground"
+                        }`}
                 >
                     {category}
                 </button>
@@ -87,9 +84,8 @@ function CategoryAccordionComponent({
                                     e.stopPropagation();
                                     onToggleCategory(category, !isCategoryEnabled);
                                 }}
-                                className={`p-1.5 rounded-lg transition-all duration-300 ${
-                                    isCategoryEnabled ? "text-primary/60 hover:text-primary hover:bg-primary/10" : "text-muted-foreground/40 dark:text-foreground/30 hover:text-muted-foreground hover:bg-muted"
-                                }`}
+                                className={`p-1.5 rounded-lg transition-all duration-300 ${isCategoryEnabled ? "text-primary/60 hover:text-primary hover:bg-primary/10" : "text-muted-foreground/40 dark:text-foreground/30 hover:text-muted-foreground hover:bg-muted"
+                                    }`}
                             >
                                 {isCategoryEnabled ? (
                                     <Eye className="h-3.5 w-3.5" />
@@ -114,9 +110,9 @@ function CategoryAccordionComponent({
                         </TooltipContent>
                     </Tooltip>
                 </div>
-                
+
                 {isCategorySelected && !openCategories.includes(category) && (
-                    <motion.div 
+                    <motion.div
                         layoutId="active-indicator"
                         className="absolute left-0 w-1 h-6 bg-primary rounded-full"
                     />

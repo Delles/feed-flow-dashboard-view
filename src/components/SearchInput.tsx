@@ -68,7 +68,7 @@ export function SearchInput({
 
     return (
         <div className="relative w-full max-w-2xl">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
                 {isLoading ? (
                     <Loader2 className="size-3.5 text-primary animate-spin" />
                 ) : (

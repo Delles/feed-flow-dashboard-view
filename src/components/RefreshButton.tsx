@@ -47,16 +47,15 @@ export function RefreshButton({
                     aria-label="Actualizează Fluxurile"
                 >
                     <RotateCcw
-                        className={`h-4 w-4 transition-all duration-500 ${
-                            isRefreshing
+                        className={`h-4 w-4 transition-all duration-500 ${isRefreshing
                                 ? "animate-spin"
                                 : "group-hover:rotate-180"
-                        }`}
+                            }`}
                     />
                 </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="bg-foreground text-background font-bold text-[10px] uppercase tracking-widest px-3 py-2 rounded-xl border-none mt-2">
-                Actualizează Știrile
+                Actualizează Fluxurile
             </TooltipContent>
         </Tooltip>
     );

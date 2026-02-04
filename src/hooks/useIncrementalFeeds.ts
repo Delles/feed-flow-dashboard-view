@@ -35,11 +35,24 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
                         errorCount: 0, // Track feed-specific errors
                     } as RSSFeed;
 
-                    const updatedArticles: Article[] = articles.map((a) => ({
-                        ...a,
-                        id: a.url || `${mockFeed.id}-${Math.random()}`,
-                        feedId: mockFeed.id,
-                    }));
+                    const updatedArticles: Article[] = articles.map((a) => {
+                        // Generate a stable ID
+                        const uniqueString = a.url || a.title || "unknown";
+                        // Simple hash function to ensure stable ID
+                        let hash = 0;
+                        for (let i = 0; i < uniqueString.length; i++) {
+                            const char = uniqueString.charCodeAt(i);
+                            hash = (hash << 5) - hash + char;
+                            hash = hash & hash;
+                        }
+                        const stableId = a.id || a.url || `${mockFeed.id}-${hash}`;
+
+                        return {
+                            ...a,
+                            id: stableId,
+                            feedId: mockFeed.id,
+                        };
+                    });
 
                     return { feed: updatedFeed, articles: updatedArticles };
                 } catch (error) {
@@ -61,11 +74,15 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
             staleTime: 15 * 60 * 1000, // 15 minutes (increased from 5)
             gcTime: 60 * 60 * 1000, // 1 hour
             retry: (failureCount, error) => {
-                // Don't retry on 4xx or 5xx errors to be kind to proxies
-                if (error instanceof Error && (error.message.includes('4') || error.message.includes('5'))) {
+                // Check for HTTP status code
+                const status = (error as any)?.status || (error as any)?.response?.status || (error as any)?.statusCode;
+                if (typeof status === 'number' && status >= 400 && status < 600) {
                     return false;
                 }
-                return failureCount < 2; // Reduced retries
+
+                // Fallback to error message check for non-HTTP errors if needed, but standard logic prefers status
+                // If no status, check if it's a network error or similar that deserves retry
+                return failureCount < 2;
             },
             retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 30000),
             // Network-aware refetching

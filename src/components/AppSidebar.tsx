@@ -29,8 +29,8 @@ interface AppSidebarProps {
     feeds: RSSFeed[];
     /** Array of articles for counting and stats */
     articles: Article[];
-    /** Callback when a new feed is added */
-    onAddFeed: (feed: RSSFeed, articles: Article[]) => void;
+    /** Callback to open the add feed dialog */
+    onOpenAddFeedDialog?: () => void;
     /** Callback when a feed is removed */
     onRemoveFeed: (feedId: string) => void;
     /** Currently selected feed ID */
@@ -57,7 +57,7 @@ interface AppSidebarProps {
 export function AppSidebar({
     feeds,
     articles,
-    onAddFeed,
+    onOpenAddFeedDialog,
     selectedFeed,
     onSelectFeed,
     selectedCategory,
@@ -137,7 +137,7 @@ export function AppSidebar({
             <SidebarHeader className="p-0">
                 <div className="p-6 pb-4">
                     <div className="flex items-center gap-3 mb-4">
-                        <motion.div 
+                        <motion.div
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20"
@@ -218,7 +218,7 @@ export function AppSidebar({
                 <Button
                     variant="outline"
                     className="w-full rounded-2xl font-bold uppercase tracking-widest text-[9px] h-12 bg-background/50 border-border/40 hover:bg-primary hover:text-white hover:border-primary transition-all duration-500 shadow-sm hover:shadow-primary/20 group"
-                    onClick={() => onAddFeed?.({} as RSSFeed, [])}
+                    onClick={onOpenAddFeedDialog}
                 >
                     <Plus className="mr-2 h-3.5 w-3.5 transition-transform group-hover:rotate-90" />
                     Adaugă Sursă

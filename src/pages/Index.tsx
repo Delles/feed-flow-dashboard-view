@@ -83,7 +83,7 @@ const Index = () => {
                 <AppSidebar
                     feeds={feeds}
                     articles={articles}
-                    onAddFeed={() => { }} // Placeholder, not implemented
+                    onOpenAddFeedDialog={() => { }} // Placeholder, not implemented
                     onRemoveFeed={() => { }} // Placeholder, not implemented
                     selectedFeed={selectedFeed}
                     onSelectFeed={onSelectFeedWrapped}

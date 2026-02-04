@@ -27,19 +27,19 @@ export function useFeedManager() {
     // Tracks which IDs have already been processed into state to avoid duplicates
     const processedFeedIds = useRef(new Set<string>());
     const processedArticleIds = useRef(new Set<string>());
-    
+
     // A version counter to force a full state replacement on refresh
     const [refreshVersion, setRefreshVersion] = useState(0);
     const lastVersionRef = useRef(0);
 
     useEffect(() => {
         const isNewRefreshCycle = refreshVersion > lastVersionRef.current;
-        
+
         if (isNewRefreshCycle) {
             // Full refresh: Reset trackers and replace entire state
             processedFeedIds.current.clear();
             processedArticleIds.current.clear();
-            
+
             if (loadedFeeds.length > 0) {
                 loadedFeeds.forEach((f) => processedFeedIds.current.add(f.id));
                 setFeeds(loadedFeeds);
@@ -66,7 +66,7 @@ export function useFeedManager() {
                 );
                 setArticles([...loadedArticles]); // Already sorted in useIncrementalFeeds
             }
-            
+
             lastVersionRef.current = refreshVersion;
         } else {
             // Normal operation: Process only genuinely new items
@@ -141,10 +141,11 @@ export function useFeedManager() {
             setFeeds([]);
             processedFeedIds.current.clear();
             processedArticleIds.current.clear();
-            
-            await refetch();
+
             // Increment version to trigger the 'isNewRefreshCycle' block in useEffect
             setRefreshVersion(v => v + 1);
+
+            await refetch();
         } catch (error) {
             console.error("Refresh failed:", error);
         }
