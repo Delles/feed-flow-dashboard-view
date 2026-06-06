@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,7 +44,9 @@ const DefaultErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetError 
                         </summary>
                         <pre className="mt-2 whitespace-pre-wrap text-xs bg-muted p-2 rounded">
                             {error.message}
-                            {error.stack && `\n\n${error.stack}`}
+                            {error.stack && `
+
+${error.stack}`}
                         </pre>
                     </details>
                     <div className="flex gap-2">
@@ -86,7 +90,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, { hasError: bool
 
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
         // Log error to console in development
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV === "development") {
             console.error('ErrorBoundary caught an error:', error, errorInfo);
         }
 

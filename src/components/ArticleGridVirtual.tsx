@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef, useEffect, useCallback } from "react";
 import { useVirtualizer, Virtualizer } from "@tanstack/react-virtual";
 import { Article, RSSFeed } from "@/types/rss";

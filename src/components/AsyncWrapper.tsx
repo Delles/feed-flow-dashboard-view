@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useTransition } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";

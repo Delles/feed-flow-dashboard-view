@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef, useEffect, useCallback } from "react";
 import { Article, RSSFeed } from "@/types/rss";
 import { ArticleCard } from "./ArticleCard";

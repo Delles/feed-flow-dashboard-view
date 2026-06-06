@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";

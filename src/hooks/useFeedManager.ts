@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import { useIncrementalFeeds } from "@/hooks/useIncrementalFeeds";
 import { Article, RSSFeed } from "@/types/rss";
