@@ -12,6 +12,24 @@ import dynamic from 'next/dynamic';
 
 const LazyAnalytics = dynamic(() => import('@/components/LazyAnalytics'), { ssr: false });
 
+function getErrorStatus(error: unknown): number | undefined {
+  if (typeof error !== "object" || error === null) return undefined;
+
+  if ("status" in error && typeof (error as { status: unknown }).status === "number") {
+    return (error as { status: number }).status;
+  }
+  if ("response" in error && typeof error.response === "object" && error.response !== null) {
+    if ("status" in error.response && typeof (error.response as { status: unknown }).status === "number") {
+      return (error.response as { status: number }).status;
+    }
+  }
+  if ("statusCode" in error && typeof (error as { statusCode: unknown }).statusCode === "number") {
+    return (error as { statusCode: number }).statusCode;
+  }
+
+  return undefined;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
@@ -22,7 +40,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         staleTime: 5 * 60 * 1000,
         gcTime: 30 * 60 * 1000,
         retry: (failureCount: number, error: unknown) => {
-          const status = (error as any)?.status || (error as any)?.response?.status || (error as any)?.statusCode;
+          const status = getErrorStatus(error);
           if (typeof status === 'number' && status >= 400 && status < 500) {
             return false;
           }

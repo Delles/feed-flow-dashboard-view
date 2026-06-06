@@ -1,4 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import dns from "dns/promises";
+
+function isPrivateIP(ip: string): boolean {
+  return (
+    ip === "0.0.0.0" ||
+    ip === "::1" ||
+    ip.startsWith("127.") ||
+    ip.startsWith("10.") ||
+    ip.startsWith("192.168.") ||
+    ip.startsWith("169.254.") ||
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip) ||
+    /^fc00:/i.test(ip) ||
+    /^fe80:/i.test(ip)
+  );
+}
 
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
@@ -19,15 +34,24 @@ export async function GET(request: NextRequest) {
   }
 
   const hostname = parsedUrl.hostname.toLowerCase();
-  const isPrivateIp =
-    hostname === "localhost" ||
-    hostname.startsWith("127.") ||
-    hostname.startsWith("10.") ||
-    hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./) ||
-    hostname.startsWith("192.168.");
 
-  if (isPrivateIp) {
+  // Quick host-based string check
+  if (hostname === "localhost" || isPrivateIP(hostname)) {
     return NextResponse.json({ error: "Private or internal URLs are not allowed" }, { status: 403 });
+  }
+
+  // Deep DNS resolution check to prevent DNS rebinding to private IPs
+  try {
+    const addresses = await dns.lookup(hostname, { all: true });
+    for (const record of addresses) {
+      if (isPrivateIP(record.address)) {
+        return NextResponse.json({ error: "Resolved to private or internal IP address" }, { status: 403 });
+      }
+    }
+  } catch (error) {
+    // If DNS fails, we can either reject or let the fetch fail naturally.
+    // Given SSRF concerns, rejecting is safer if it truly doesn't resolve.
+    return NextResponse.json({ error: "DNS resolution failed for hostname" }, { status: 400 });
   }
 
   try {
