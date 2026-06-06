@@ -94,7 +94,7 @@ export function AsyncWrapper<T>({
     }
 
     // Check for empty state
-    if (!data || (isEmpty && isEmpty(data))) {
+    if (data == null || (isEmpty && isEmpty(data))) {
         return emptyComponent || <DefaultEmpty />;
     }
 

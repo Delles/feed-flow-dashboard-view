@@ -21,8 +21,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
         refetchOnReconnect: true,
         staleTime: 5 * 60 * 1000,
         gcTime: 30 * 60 * 1000,
-        retry: (failureCount, error) => {
-          if (error instanceof Error && error.message.includes('4')) return false;
+        retry: (failureCount: number, error: unknown) => {
+          const status = (error as any)?.status || (error as any)?.response?.status || (error as any)?.statusCode;
+          if (typeof status === 'number' && status >= 400 && status < 500) {
+            return false;
+          }
           return failureCount < 3;
         },
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
@@ -40,8 +43,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  if (!mounted) return null;
 
   return (
     <ErrorBoundary>

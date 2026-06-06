@@ -74,6 +74,7 @@ export function AddFeedDialog({
 
     const form = useForm<AddFeedForm>({
         resolver: zodResolver(addFeedSchema),
+        mode: "onChange",
         defaultValues: {
             url: "",
             title: "",
