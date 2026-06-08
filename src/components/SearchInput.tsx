@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef, startTransition } from "react";
 import { Search, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";

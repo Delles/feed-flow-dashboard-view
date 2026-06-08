@@ -6,14 +6,6 @@ export interface ParsedRSSFeed {
   articles: Article[];
 }
 
-// Multiple CORS proxy services as fallbacks - reordered for reliability
-const CORS_PROXIES = [
-  "https://api.codetabs.com/v1/proxy?quest=",
-  "https://api.allorigins.win/get?url=",
-  "https://corsproxy.io/?",
-  "https://cors-anywhere.herokuapp.com/"
-];
-
 function extractTextContent(element: Element | null): string {
   if (!element) return "";
 
@@ -36,80 +28,30 @@ function extractTextContent(element: Element | null): string {
     .trim();
 }
 
-async function fetchWithProxy(url: string): Promise<string> {
-  console.log("Attempting to fetch RSS feed:", url);
+async function fetchThroughApi(url: string): Promise<string> {
+  console.log("Attempting to fetch RSS feed through API route:", url);
 
-  // Improved XML detection: case-insensitive, supports RSS, Atom, and RDF feeds
-  const isXmlText = (text: string) => {
-    const trimmed = text.trimStart().toLowerCase();
-    return trimmed.includes('<rss') ||
-      trimmed.includes('<?xml') ||
-      trimmed.includes('<feed') ||  // Atom feeds
-      trimmed.includes('<rdf');     // RDF feeds
-  };
+  try {
+    const apiUrl = `/api/rss?url=${encodeURIComponent(url)}`;
+    const response = await fetch(apiUrl);
 
-  for (let i = 0; i < CORS_PROXIES.length; i++) {
-    const proxy = CORS_PROXIES[i];
-    console.log(`Trying proxy ${i + 1}/${CORS_PROXIES.length}:`, proxy);
-
-    try {
-      const cacheBuster = (url.includes('?') ? '&' : '?') + `_cb=${Date.now()}`;
-      const urlWithCb = url + cacheBuster;
-      const proxyUrl = `${proxy}${encodeURIComponent(urlWithCb)}`;
-      const response = await fetch(proxyUrl, { cache: 'no-store' });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const contentType = response.headers.get('content-type') || '';
-      const bodyText = await response.text();
-
-      // Check if response is XML directly
-      if (contentType.includes('xml') || contentType.includes('text')) {
-        if (isXmlText(bodyText)) {
-          console.log("Successfully fetched RSS data as XML with proxy:", proxy);
-          return bodyText;
-        }
-      }
-
-      // Try parsing as JSON (for proxies that wrap the response)
-      try {
-        const data = JSON.parse(bodyText);
-
-        // Different proxy services return data in different formats
-        const xmlText = data.contents || data.body || data.data || data;
-
-        if (typeof xmlText === 'string' && isXmlText(xmlText)) {
-          console.log("Successfully fetched RSS data as JSON with proxy:", proxy);
-          return xmlText;
-        }
-      } catch (jsonError) {
-        // If JSON parsing fails, check if the body text itself is XML
-        if (isXmlText(bodyText)) {
-          console.log("Successfully fetched RSS data as text with proxy:", proxy);
-          return bodyText;
-        }
-      }
-
-      throw new Error("Invalid response format from proxy");
-
-    } catch (error) {
-      console.warn(`Proxy ${proxy} failed:`, error);
-
-      // If this is the last proxy, throw the error
-      if (i === CORS_PROXIES.length - 1) {
-        throw new Error(`All proxy services failed. Last error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
     }
-  }
 
-  throw new Error("Failed to fetch RSS feed through any proxy service");
+    const bodyText = await response.text();
+    return bodyText;
+
+  } catch (error) {
+    console.error(`API fetch failed:`, error);
+    throw new Error(`Failed to fetch RSS feed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 export async function parseRSSFeed(url: string): Promise<ParsedRSSFeed> {
   try {
-    const xmlText = await fetchWithProxy(url);
+    const xmlText = await fetchThroughApi(url);
 
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlText, "text/xml");

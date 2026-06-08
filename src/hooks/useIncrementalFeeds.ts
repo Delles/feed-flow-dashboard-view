@@ -1,3 +1,5 @@
+"use client";
+
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { mockFeeds } from "@/lib/mockData";
@@ -73,7 +75,7 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
             // Enhanced query configuration
             staleTime: 15 * 60 * 1000, // 15 minutes (increased from 5)
             gcTime: 60 * 60 * 1000, // 1 hour
-            retry: (failureCount, error) => {
+            retry: (failureCount: number, error: unknown) => {
                 // Check for HTTP status code from error properties
                 const status = (error as any)?.status || (error as any)?.response?.status || (error as any)?.statusCode;
                 if (typeof status === 'number' && status >= 400 && status < 600) {
@@ -92,7 +94,7 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
                 // If no HTTP status detected, allow retry for transient network errors
                 return failureCount < 2;
             },
-            retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 30000),
+            retryDelay: (attemptIndex: number) => Math.min(2000 * 2 ** attemptIndex, 30000),
             // Network-aware refetching
             refetchOnWindowFocus: false,
             refetchOnReconnect: true,

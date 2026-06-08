@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback } from 'react';
 import { toast } from 'sonner';
 
@@ -98,7 +100,7 @@ export function useErrorHandler() {
         }
 
         // Log error for debugging
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV === "development") {
             console.error(`Error in ${context || 'unknown context'}:`, appError);
         }
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 import { Article, RSSFeed } from "@/types/rss";
 import { ArticleGridInfinite } from "./ArticleGridInfinite";

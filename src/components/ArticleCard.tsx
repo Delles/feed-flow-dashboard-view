@@ -1,3 +1,5 @@
+"use client";
+
 import { Article, RSSFeed } from "@/types/rss";
 import { Rss, Clock, ChevronRight, Newspaper } from "lucide-react";
 import { getOptimisedImage } from "@/lib/utils";

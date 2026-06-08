@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { Article, RSSFeed } from "@/types/rss";
 import { normalizeText } from "@/lib/normalizeText";

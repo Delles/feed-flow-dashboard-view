@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -92,7 +94,7 @@ export function AsyncWrapper<T>({
     }
 
     // Check for empty state
-    if (!data || (isEmpty && isEmpty(data))) {
+    if (data == null || (isEmpty && isEmpty(data))) {
         return emptyComponent || <DefaultEmpty />;
     }
 

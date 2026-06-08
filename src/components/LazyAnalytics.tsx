@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 
 export default function LazyAnalytics() {
-    const [elements, setElements] = useState<JSX.Element[]>([]);
+    const [elements, setElements] = useState<React.ReactNode[]>([]);
 
     useEffect(() => {
         let active = true;
@@ -12,7 +14,7 @@ export default function LazyAnalytics() {
             import("@vercel/speed-insights/react"),
         ]).then(([analyticsMod, speedMod]) => {
             if (!active) return;
-            const comps: JSX.Element[] = [];
+            const comps: React.ReactNode[] = [];
             if (analyticsMod.Analytics) {
                 const Analytics = analyticsMod.Analytics;
                 comps.push(<Analytics key="analytics" />);
