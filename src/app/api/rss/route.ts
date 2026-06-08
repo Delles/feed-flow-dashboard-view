@@ -10,9 +10,30 @@ function isPrivateIP(ip: string): boolean {
     ip.startsWith("192.168.") ||
     ip.startsWith("169.254.") ||
     /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip) ||
-    /^fc00:/i.test(ip) ||
-    /^fe80:/i.test(ip)
+    /^f[cd][0-9a-f:]*$/i.test(ip) ||
+    /^fe[89ab][0-9a-f:]*$/i.test(ip)
   );
+}
+
+async function validateHostname(hostname: string): Promise<boolean> {
+  // Quick host-based string check
+  if (hostname === "localhost" || isPrivateIP(hostname)) {
+    return false;
+  }
+
+  // Deep DNS resolution check to prevent DNS rebinding to private IPs
+  try {
+    const addresses = await dns.lookup(hostname, { all: true });
+    for (const record of addresses) {
+      if (isPrivateIP(record.address)) {
+        return false;
+      }
+    }
+  } catch (error) {
+    // If DNS fails, we reject it
+    return false;
+  }
+  return true;
 }
 
 export async function GET(request: NextRequest) {
@@ -33,39 +54,70 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Disallowed protocol" }, { status: 400 });
   }
 
-  const hostname = parsedUrl.hostname.toLowerCase();
-
-  // Quick host-based string check
-  if (hostname === "localhost" || isPrivateIP(hostname)) {
-    return NextResponse.json({ error: "Private or internal URLs are not allowed" }, { status: 403 });
+  const isValid = await validateHostname(parsedUrl.hostname.toLowerCase());
+  if (!isValid) {
+    return NextResponse.json({ error: "Private or internal URLs are not allowed or DNS resolution failed" }, { status: 403 });
   }
 
-  // Deep DNS resolution check to prevent DNS rebinding to private IPs
+  let currentUrl = url;
+  let response: Response;
+  let redirects = 0;
+  const MAX_REDIRECTS = 5;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
   try {
-    const addresses = await dns.lookup(hostname, { all: true });
-    for (const record of addresses) {
-      if (isPrivateIP(record.address)) {
-        return NextResponse.json({ error: "Resolved to private or internal IP address" }, { status: 403 });
+    while (true) {
+      response = await fetch(currentUrl, {
+        headers: {
+          "User-Agent": "FeedFlow/1.0",
+          "Accept": "application/rss+xml, application/xml, application/atom+xml, text/xml, */*"
+        },
+        redirect: 'manual',
+        next: { revalidate: 300 }, // Cache for 5 minutes
+        signal: controller.signal
+      });
+
+      if (response.status >= 300 && response.status < 400) {
+        if (redirects >= MAX_REDIRECTS) {
+          clearTimeout(timeoutId);
+          return NextResponse.json({ error: "Too many redirects" }, { status: 502 });
+        }
+        redirects++;
+
+        const location = response.headers.get('location');
+        if (!location) {
+          clearTimeout(timeoutId);
+          return NextResponse.json({ error: "Redirect location missing" }, { status: 502 });
+        }
+
+        let nextUrlObj: URL;
+        try {
+          nextUrlObj = new URL(location, currentUrl);
+        } catch (e) {
+          clearTimeout(timeoutId);
+          return NextResponse.json({ error: "Invalid redirect URL format" }, { status: 502 });
+        }
+
+        if (nextUrlObj.protocol !== "http:" && nextUrlObj.protocol !== "https:") {
+          clearTimeout(timeoutId);
+          return NextResponse.json({ error: "Disallowed protocol in redirect" }, { status: 400 });
+        }
+
+        const isNextValid = await validateHostname(nextUrlObj.hostname.toLowerCase());
+        if (!isNextValid) {
+          clearTimeout(timeoutId);
+          return NextResponse.json({ error: "Redirected to private or internal URL" }, { status: 403 });
+        }
+
+        currentUrl = nextUrlObj.toString();
+        continue;
       }
+
+      break;
     }
-  } catch (error) {
-    // If DNS fails, we can either reject or let the fetch fail naturally.
-    // Given SSRF concerns, rejecting is safer if it truly doesn't resolve.
-    return NextResponse.json({ error: "DNS resolution failed for hostname" }, { status: 400 });
-  }
 
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent": "FeedFlow/1.0",
-        "Accept": "application/rss+xml, application/xml, application/atom+xml, text/xml, */*"
-      },
-      next: { revalidate: 300 }, // Cache for 5 minutes
-      signal: controller.signal
-    });
     clearTimeout(timeoutId);
 
     if (!response.ok) {
@@ -76,15 +128,15 @@ export async function GET(request: NextRequest) {
     }
 
     const text = await response.text();
-    const contentType = response.headers.get("content-type") || "text/xml";
 
     return new NextResponse(text, {
       headers: {
-        "Content-Type": contentType,
+        "Content-Type": "application/xml; charset=utf-8",
         "Cache-Control": "s-maxage=300, stale-while-revalidate",
       },
     });
   } catch (error: any) {
+    clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
       console.error("Fetch timeout for RSS feed:", url);
       return NextResponse.json(
