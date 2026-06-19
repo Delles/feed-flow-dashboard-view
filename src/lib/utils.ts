@@ -17,3 +17,16 @@ export function getOptimisedImage(
     const encoded = encodeURIComponent(src);
     return `https://images.weserv.nl/?url=${encoded}&w=${width}&q=${quality}&output=auto&il&fit=cover`;
 }
+
+/**
+ * Generates a stable 32-bit hash from a string.
+ */
+export function generateHash(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash;
+    }
+    return hash;
+}
