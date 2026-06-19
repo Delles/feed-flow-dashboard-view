@@ -6,6 +6,7 @@ import { mockFeeds } from "@/lib/mockData";
 import { parseRSSFeed } from "@/lib/rssParser";
 import { RSSFeed, Article } from "@/types/rss";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
+import { generateHash } from "@/lib/utils";
 
 export interface IncrementalFeedsResult {
     feeds: RSSFeed[];
@@ -40,13 +41,7 @@ export function useIncrementalFeeds(): IncrementalFeedsResult {
                     const updatedArticles: Article[] = articles.map((a, index) => {
                         // Generate a stable ID
                         const uniqueString = a.url || a.title || `unknown-${index}`;
-                        // Simple hash function to ensure stable ID
-                        let hash = 0;
-                        for (let i = 0; i < uniqueString.length; i++) {
-                            const char = uniqueString.charCodeAt(i);
-                            hash = (hash << 5) - hash + char;
-                            hash = hash & hash;
-                        }
+                        const hash = generateHash(uniqueString);
                         const stableId = a.id || a.url || `${mockFeed.id}-${hash}`;
 
                         return {
