@@ -23,7 +23,7 @@ interface CategoryAccordionProps {
     enabledFeeds: Record<string, boolean>;
     isCategoryEnabled: boolean;
     hasActiveFilter: boolean;
-    openCategories: string[];
+    openCategories: Set<string>;
     onSelectFeed: (feedId: string | null) => void;
     onSelectCategory: (category: string | null) => void;
     onToggleFeed: (feedId: string, enabled: boolean) => void;
@@ -46,7 +46,7 @@ function CategoryAccordionComponent({
     onToggleCategory,
 }: CategoryAccordionProps) {
     const isCategorySelected = selectedCategory === category;
-    const isOpen = openCategories.includes(category);
+    const isOpen = openCategories.has(category);
 
     // Determine if feeds in this category should be dimmed
     const shouldDimFeeds = hasActiveFilter && !isCategorySelected;
@@ -111,7 +111,7 @@ function CategoryAccordionComponent({
                     </Tooltip>
                 </div>
 
-                {isCategorySelected && !openCategories.includes(category) && (
+                {isCategorySelected && !openCategories.has(category) && (
                     <motion.div
                         layoutId="active-indicator"
                         className="absolute left-0 w-1 h-6 bg-primary rounded-full"

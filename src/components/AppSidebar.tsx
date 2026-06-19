@@ -100,7 +100,7 @@ export function AppSidebar({
     }, [feeds]);
 
     // Manage accordion open/closed state
-    const [openCategories, setOpenCategories] = useState<string[]>([]);
+    const [openCategories, setOpenCategories] = useState<Set<string>>(new Set());
 
     // Auto-expand category when a feed is selected
     useEffect(() => {
@@ -109,7 +109,7 @@ export function AppSidebar({
             if (selectedFeedObj) {
                 const category = selectedFeedObj.category ?? DEFAULT_CATEGORY;
                 setOpenCategories((prev) =>
-                    prev.includes(category) ? prev : [...prev, category]
+                    prev.has(category) ? prev : new Set(prev).add(category)
                 );
             }
         }
@@ -119,9 +119,9 @@ export function AppSidebar({
     useEffect(() => {
         if (selectedCategory) {
             setOpenCategories((prev) =>
-                prev.includes(selectedCategory)
+                prev.has(selectedCategory)
                     ? prev
-                    : [...prev, selectedCategory]
+                    : new Set(prev).add(selectedCategory)
             );
         }
     }, [selectedCategory]);
@@ -184,8 +184,8 @@ export function AppSidebar({
 
                         <Accordion
                             type="multiple"
-                            value={openCategories}
-                            onValueChange={setOpenCategories}
+                            value={Array.from(openCategories)}
+                            onValueChange={(val) => setOpenCategories(new Set(val))}
                             className="space-y-1"
                         >
                             {categories.map((category) => (
