@@ -129,43 +129,55 @@ export function useInfiniteArticles(
 
         const normalizedQuery = searchQuery ? normalizeText(searchQuery) : "";
 
-        const filtered = allArticles.filter((article) => {
-            const feed = feeds.find((f) => f.id === article.feedId);
+        // Pre-build feed map for O(1) lookup
+        const feedMap = new Map<string, RSSFeed>();
+        for (let i = 0; i < feeds.length; i++) {
+            feedMap.set(feeds[i].id, feeds[i]);
+        }
+
+        const filteredWithTime: { id: string; time: number }[] = [];
+
+        for (let i = 0; i < allArticles.length; i++) {
+            const article = allArticles[i];
+
+            const feed = feedMap.get(article.feedId);
             const category = feed?.category ?? "Altele";
 
             // Filter by enabled state first (fastest check)
             if (!enabledFeeds[article.feedId] || !enabledCategories[category]) {
-                return false;
+                continue;
             }
 
             // Filter by selected feed or category
             if (selectedFeed && article.feedId !== selectedFeed) {
-                return false;
+                continue;
             }
             if (selectedCategory && category !== selectedCategory) {
-                return false;
+                continue;
             }
 
             // Search filter (most expensive, do last)
             if (normalizedQuery) {
                 const titleNorm = normalizeText(article.title);
                 const descNorm = normalizeText(article.description);
-                return (
-                    titleNorm.includes(normalizedQuery) ||
-                    descNorm.includes(normalizedQuery)
-                );
+                if (
+                    !titleNorm.includes(normalizedQuery) &&
+                    !descNorm.includes(normalizedQuery)
+                ) {
+                    continue;
+                }
             }
 
-            return true;
-        });
+            filteredWithTime.push({
+                id: article.id,
+                time: new Date(article.pubDate).getTime()
+            });
+        }
 
-        return filtered
-            .sort(
-                (a, b) =>
-                    new Date(b.pubDate).getTime() -
-                    new Date(a.pubDate).getTime()
-            )
-            .map((article) => article.id);
+        // Sort by cached time and map to IDs
+        return filteredWithTime
+            .sort((a, b) => b.time - a.time)
+            .map((item) => item.id);
     }, [debouncedConfig]);
 
     /**
