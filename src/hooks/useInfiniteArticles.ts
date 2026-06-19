@@ -168,6 +168,11 @@ export function useInfiniteArticles(
             .map((article) => article.id);
     }, [debouncedConfig]);
 
+    // Convert IDs back to articles efficiently outside of pagination updates
+    const articleMap = useMemo(() => {
+        return new Map(allArticles.map((article) => [article.id, article]));
+    }, [allArticles]);
+
     /**
      * Get articles for current pages with memory management.
      * Converts filtered article IDs back to full article objects for display.
@@ -182,15 +187,10 @@ export function useInfiniteArticles(
             Math.min(totalToShow, MAX_CACHED_ARTICLES)
         );
 
-        // Convert IDs back to articles
-        const articleMap = new Map(
-            allArticles.map((article) => [article.id, article])
-        );
-
         return articlesToShow
             .map((id) => articleMap.get(id))
             .filter(Boolean) as Article[];
-    }, [filteredArticleIds, currentPage, allArticles]);
+    }, [filteredArticleIds, currentPage, articleMap]);
 
     const hasMore = useMemo(() => {
         const totalShown = displayedArticles.length;
