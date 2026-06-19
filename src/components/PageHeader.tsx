@@ -70,13 +70,22 @@ export function PageHeader({
     onAddFeed,
 }: PageHeaderProps) {
 
+    // Create a fast lookup map for feeds to avoid O(N) searches
+    const feedsMap = useMemo(() => {
+        const map = new Map<string, RSSFeed>();
+        for (const feed of feeds) {
+            map.set(feed.id, feed);
+        }
+        return map;
+    }, [feeds]);
+
     // Determine active filter name for display
     const activeFilterName = useMemo(() => {
         if (selectedFeed) {
-            return feeds.find((f) => f.id === selectedFeed)?.title || "Filtru";
+            return feedsMap.get(selectedFeed)?.title || "Filtru";
         }
         return selectedCategory || "Toate articolele";
-    }, [feeds, selectedFeed, selectedCategory]);
+    }, [feedsMap, selectedFeed, selectedCategory]);
 
     // Generate breadcrumb items
     const breadcrumbItems = useMemo(() => {
@@ -93,7 +102,7 @@ export function PageHeader({
         }
 
         if (selectedFeed) {
-            const feed = feeds.find(f => f.id === selectedFeed);
+            const feed = feedsMap.get(selectedFeed);
             if (feed) {
                 items.push({
                     label: feed.title,
@@ -104,7 +113,7 @@ export function PageHeader({
         }
 
         return items;
-    }, [feeds, selectedFeed, selectedCategory]);
+    }, [feedsMap, selectedFeed, selectedCategory]);
 
     return (
         <header
@@ -130,7 +139,7 @@ export function PageHeader({
                     <ThemeToggle />
                 </div>
             </div>
-            
+
             <div className="flex flex-col md:flex-row md:items-center gap-4">
                 <div className="flex-1">
                     <SearchInput
@@ -153,4 +162,3 @@ export function PageHeader({
         </header>
     );
 }
-
