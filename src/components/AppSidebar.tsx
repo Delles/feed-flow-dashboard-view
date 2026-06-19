@@ -102,10 +102,19 @@ export function AppSidebar({
     // Manage accordion open/closed state
     const [openCategories, setOpenCategories] = useState<string[]>([]);
 
+    // Memoize feed lookup for O(1) access
+    const feedById = useMemo(() => {
+        const map = new Map<string, RSSFeed>();
+        feeds.forEach((feed) => {
+            map.set(feed.id, feed);
+        });
+        return map;
+    }, [feeds]);
+
     // Auto-expand category when a feed is selected
     useEffect(() => {
         if (selectedFeed) {
-            const selectedFeedObj = feeds.find((f) => f.id === selectedFeed);
+            const selectedFeedObj = feedById.get(selectedFeed);
             if (selectedFeedObj) {
                 const category = selectedFeedObj.category ?? DEFAULT_CATEGORY;
                 setOpenCategories((prev) =>
@@ -113,7 +122,7 @@ export function AppSidebar({
                 );
             }
         }
-    }, [selectedFeed, feeds]);
+    }, [selectedFeed, feedById]);
 
     // Auto-expand category when a category is selected
     useEffect(() => {
