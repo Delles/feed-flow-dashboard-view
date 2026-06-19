@@ -71,32 +71,21 @@ export function AppSidebar({
 }: AppSidebarProps) {
     const hasActiveFilter = selectedFeed !== null || selectedCategory !== null;
 
-    // Group feeds by category for efficient rendering
-    const feedsByCategory = useMemo(() => {
-        return feeds.reduce((acc, feed) => {
+    // Group feeds by category for efficient rendering and maintain category order
+    const { feedsByCategory, categories } = useMemo(() => {
+        const feedsByCategory: Record<string, RSSFeed[]> = {};
+        const categories: string[] = [];
+
+        for (const feed of feeds) {
             const category = feed.category ?? DEFAULT_CATEGORY;
-            if (!acc[category]) {
-                acc[category] = [];
+            if (!feedsByCategory[category]) {
+                feedsByCategory[category] = [];
+                categories.push(category);
             }
-            acc[category].push(feed);
-            return acc;
-        }, {} as Record<string, RSSFeed[]>);
-    }, [feeds]);
+            feedsByCategory[category].push(feed);
+        }
 
-    // Maintain category order as they appear in the feeds array
-    const categories = useMemo(() => {
-        const ordered: string[] = [];
-        const seen = new Set<string>();
-
-        feeds.forEach((feed) => {
-            const category = feed.category ?? DEFAULT_CATEGORY;
-            if (!seen.has(category)) {
-                seen.add(category);
-                ordered.push(category);
-            }
-        });
-
-        return ordered;
+        return { feedsByCategory, categories };
     }, [feeds]);
 
     // Manage accordion open/closed state
