@@ -123,6 +123,3 @@ export const mockFeeds: RSSFeed[] = [
         lastUpdated: new Date(),
     },
 ];
-
-// Empty articles array since we'll fetch real articles from the RSS feeds
-export const mockArticles: Article[] = [];
