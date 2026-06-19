@@ -73,14 +73,14 @@ export function useInfiniteArticles(
     );
 
     // Create stable string keys for object dependencies
-    const enabledFeedsKey = Object.keys(enabledFeeds)
+    const enabledFeedsKey = useMemo(() => Object.keys(enabledFeeds)
         .filter((k) => enabledFeeds[k])
         .sort()
-        .join(",");
-    const enabledCategoriesKey = Object.keys(enabledCategories)
+        .join(","), [enabledFeeds]);
+    const enabledCategoriesKey = useMemo(() => Object.keys(enabledCategories)
         .filter((k) => enabledCategories[k])
         .sort()
-        .join(",");
+        .join(","), [enabledCategories]);
 
     // Check if filter configuration has changed
     const hasFilterChanged = useMemo(() => {
