@@ -129,8 +129,10 @@ export function useInfiniteArticles(
 
         const normalizedQuery = searchQuery ? normalizeText(searchQuery) : "";
 
+        const feedsMap = new Map(feeds.map((f) => [f.id, f]));
+
         const filtered = allArticles.filter((article) => {
-            const feed = feeds.find((f) => f.id === article.feedId);
+            const feed = feedsMap.get(article.feedId);
             const category = feed?.category ?? "Altele";
 
             // Filter by enabled state first (fastest check)
