@@ -82,6 +82,24 @@ export function useInfiniteArticles(
         .sort()
         .join(",");
 
+    // Cache normalized strings to avoid running expensive text manipulation O(N) times per filter update
+    const normalizedTextCacheRef = useRef<Map<string, { title: string; desc: string }>>(new Map());
+
+    // Update cache when allArticles changes, incrementally adding new ones
+    useMemo(() => {
+        const cache = normalizedTextCacheRef.current;
+        for (const article of allArticles) {
+            if (!cache.has(article.id)) {
+                cache.set(article.id, {
+                    title: normalizeText(article.title),
+                    desc: normalizeText(article.description),
+                });
+            }
+        }
+    }, [allArticles]);
+
+    const normalizedTextCache = normalizedTextCacheRef.current;
+
     // Check if filter configuration has changed
     const hasFilterChanged = useMemo(() => {
         const prev = filterConfigRef.current;
@@ -148,6 +166,13 @@ export function useInfiniteArticles(
 
             // Search filter (most expensive, do last)
             if (normalizedQuery) {
+                const cached = normalizedTextCache.get(article.id);
+                if (cached) {
+                    return (
+                        cached.title.includes(normalizedQuery) ||
+                        cached.desc.includes(normalizedQuery)
+                    );
+                }
                 const titleNorm = normalizeText(article.title);
                 const descNorm = normalizeText(article.description);
                 return (
@@ -166,7 +191,7 @@ export function useInfiniteArticles(
                     new Date(a.pubDate).getTime()
             )
             .map((article) => article.id);
-    }, [debouncedConfig]);
+    }, [debouncedConfig, normalizedTextCache]);
 
     /**
      * Get articles for current pages with memory management.
