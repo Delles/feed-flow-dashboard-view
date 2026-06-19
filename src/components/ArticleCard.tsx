@@ -100,7 +100,18 @@ function ArticleCardComponent({
         ? (useOriginal ? article.image : getOptimisedImage(article.image, 600, 85))
         : "";
 
-    const openArticle = () => window.open(article.url, "_blank", "noopener,noreferrer");
+    const openArticle = () => {
+        try {
+            const parsedUrl = new URL(article.url, window.location.origin);
+            if (parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:") {
+                window.open(article.url, "_blank", "noopener,noreferrer");
+            } else {
+                console.warn("Blocked potentially malicious URL protocol:", parsedUrl.protocol);
+            }
+        } catch (e) {
+            console.error("Invalid URL:", article.url);
+        }
+    };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
