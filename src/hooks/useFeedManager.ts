@@ -156,6 +156,50 @@ export function useFeedManager() {
         }
     };
 
+    const handleAddFeed = (newFeed: RSSFeed, newArticles: Article[]) => {
+        if (!processedFeedIds.current.has(newFeed.id)) {
+            processedFeedIds.current.add(newFeed.id);
+            setFeeds((prev) => [...prev, newFeed]);
+            setEnabledFeeds((prev) => ({ ...prev, [newFeed.id]: true }));
+
+            const cat = newFeed.category ?? "Altele";
+            setEnabledCategories((prev) => {
+                if (!(cat in prev)) return { ...prev, [cat]: true };
+                return prev;
+            });
+        }
+
+        const uniqueNewArticles = newArticles.filter(a => !processedArticleIds.current.has(a.id));
+        if (uniqueNewArticles.length > 0) {
+            uniqueNewArticles.forEach(a => processedArticleIds.current.add(a.id));
+            setArticles((prev) =>
+                [...prev, ...uniqueNewArticles].sort(
+                    (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
+                )
+            );
+        }
+    };
+
+    const handleRemoveFeed = (feedId: string) => {
+        processedFeedIds.current.delete(feedId);
+        setFeeds((prev) => prev.filter((f) => f.id !== feedId));
+        setEnabledFeeds((prev) => {
+            const updated = { ...prev };
+            delete updated[feedId];
+            return updated;
+        });
+
+        // Remove related articles
+        const remainingArticles = articles.filter((a) => {
+            if (a.feedId === feedId) {
+                processedArticleIds.current.delete(a.id);
+                return false;
+            }
+            return true;
+        });
+        setArticles(remainingArticles);
+    };
+
     return {
         feeds,
         articles,
@@ -165,6 +209,8 @@ export function useFeedManager() {
         enabledCategories,
         handleToggleFeed,
         handleToggleCategory,
+        handleAddFeed,
+        handleRemoveFeed,
         refetch: handleRefresh,
     };
 }

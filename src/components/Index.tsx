@@ -11,6 +11,7 @@ import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { useFeedManager } from "@/hooks/useFeedManager";
 import { useFilters } from "@/hooks/useFilters";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AddFeedDialog } from "@/components/AddFeedDialog";
 
 const Index = () => {
     const {
@@ -22,8 +23,12 @@ const Index = () => {
         enabledCategories,
         handleToggleFeed,
         handleToggleCategory,
+        handleAddFeed,
+        handleRemoveFeed,
         refetch,
     } = useFeedManager();
+
+    const [isAddFeedDialogOpen, setIsAddFeedDialogOpen] = useState(false);
 
     const {
         selectedFeed,
@@ -82,11 +87,21 @@ const Index = () => {
     return (
         <SidebarProvider>
             <div className="min-h-screen flex w-full bg-background justify-center">
+                <AddFeedDialog
+                    open={isAddFeedDialogOpen}
+                    onOpenChange={setIsAddFeedDialogOpen}
+                    onAddFeed={(feed, newArticles) => {
+                        handleAddFeed(feed, newArticles);
+                        setIsAddFeedDialogOpen(false);
+                    }}
+                    existingCategories={Object.keys(enabledCategories)}
+                />
+
                 <AppSidebar
                     feeds={feeds}
                     articles={articles}
-                    onOpenAddFeedDialog={() => { }} // Placeholder, not implemented
-                    onRemoveFeed={() => { }} // Placeholder, not implemented
+                    onOpenAddFeedDialog={() => setIsAddFeedDialogOpen(true)}
+                    onRemoveFeed={handleRemoveFeed}
                     selectedFeed={selectedFeed}
                     onSelectFeed={onSelectFeedWrapped}
                     selectedCategory={selectedCategory}
@@ -110,7 +125,7 @@ const Index = () => {
                         onRefresh={refetch}
                         onSelectFeed={onSelectFeedWrapped}
                         onSelectCategory={onSelectCategoryWrapped}
-                        onAddFeed={() => { }}
+                        onAddFeed={() => setIsAddFeedDialogOpen(true)}
                     />
 
                     <main className="flex-1 p-6 md:p-12">
