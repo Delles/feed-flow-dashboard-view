@@ -183,9 +183,6 @@ export function useInfiniteArticles(
     /**
      * Get articles for current pages with memory management.
      * Converts filtered article IDs back to full article objects for display.
-     *
-     * Fix: Simplified from complex try-catch error handling to basic array operations.
-     * Removed unnecessary console warnings and error logging that added complexity without benefit.
      */
     const displayedArticles = useMemo(() => {
         const totalToShow = (currentPage + 1) * ARTICLES_PER_PAGE;
@@ -213,9 +210,6 @@ export function useInfiniteArticles(
     /**
      * Load more articles by incrementing the current page.
      * Uses a small delay to provide visual feedback during loading.
-     *
-     * Fix: Simplified from requestAnimationFrame approach to basic setTimeout for reliability.
-     * The original approach was over-engineered for this simple state update.
      */
     const loadMore = useCallback(() => {
         if (hasMore && !isLoading && !isSearching) {
