@@ -110,7 +110,6 @@ src/
 ├── lib/                # Utilities and core logic
 │   ├── rssParser.ts    # Robust RSS parsing with proxy failovers
 │   ├── mockData.ts     # Initial Romanian RSS feed sources
-│   ├── fetchInitialFeedData.ts # Async data initialization
 │   └── utils.ts        # Tailwind merge and common utilities
 ├── pages/              # Main route components
 │   ├── Index.tsx       # Dashboard main view
